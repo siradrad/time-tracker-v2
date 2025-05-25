@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { timeTrackerAPI } from '../lib/supabase.js'
 import AddUser from './AddUser.jsx'
 import { BarChart3, Clock, MapPin, List, Calendar, Briefcase, Users, Edit, Trash2, Plus, User, ChevronDown, ChevronRight, UserPlus } from 'lucide-react'
+import '../aesthetic-changes/css/example-improvements.css'
 
 function Dashboard({ user }) {
   const [stats, setStats] = useState(null)
@@ -195,7 +196,68 @@ function Dashboard({ user }) {
         { id: 2, date: '2024-05-02', job: 'Job B', task: 'Task 2', worker: 'User 2', hours: 3 }
       ])
       setReportLoading(false)
+      // Open in new window
+      openReportWindow([
+        { id: 1, date: '2024-05-01', job: 'Job A', task: 'Task 1', worker: 'User 1', hours: 4 },
+        { id: 2, date: '2024-05-02', job: 'Job B', task: 'Task 2', worker: 'User 2', hours: 3 }
+      ])
     }, 1000)
+  }
+
+  const openReportWindow = (data) => {
+    const win = window.open('', '_blank', 'width=900,height=700')
+    if (!win) return
+    const csvRows = [
+      ['Date', 'Job', 'Task', 'Worker', 'Hours'],
+      ...data.map(row => [row.date, row.job, row.task, row.worker, row.hours])
+    ]
+    const csvContent = csvRows.map(e => e.join(",")).join("\n")
+    const downloadScript = `
+      function downloadCSV() {
+        const csv = \`${csvContent}\`;
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'report.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    `
+    win.document.write(`
+      <html>
+      <head>
+        <title>Report</title>
+        <link rel="stylesheet" href="/aesthetic-changes/css/example-improvements.css" />
+        <style>
+          body { font-family: 'Inter', sans-serif; background: #f8fafc; margin: 0; padding: 2rem; }
+          .card-modern { max-width: 800px; margin: 2rem auto; padding: 2rem; }
+          table { width: 100%; border-collapse: collapse; margin-top: 2rem; }
+          th, td { padding: 1rem; border-bottom: 1px solid #e5e7eb; text-align: left; }
+          th { background: #f1f5f9; font-size: 1.1rem; }
+          tr:last-child td { border-bottom: none; }
+        </style>
+      </head>
+      <body>
+        <div class="card-modern slide-in">
+          <h2 style="margin-top:0;">Report Results</h2>
+          <button class="btn-enhanced" onclick="downloadCSV()">Download CSV</button>
+          <table>
+            <thead>
+              <tr><th>Date</th><th>Job</th><th>Task</th><th>Worker</th><th>Hours</th></tr>
+            </thead>
+            <tbody>
+              ${data.map(row => `<tr><td>${row.date}</td><td>${row.job}</td><td>${row.task}</td><td>${row.worker}</td><td>${row.hours}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+        <script>${downloadScript}</script>
+      </body>
+      </html>
+    `)
+    win.document.close()
   }
 
   if (loading) {
@@ -257,69 +319,71 @@ function Dashboard({ user }) {
         {/* Reporting Modal */}
         {showReporting && (
           <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-            <div className="modal" style={{ background: '#fff', borderRadius: 8, padding: 32, minWidth: 480, boxShadow: '0 2px 16px rgba(0,0,0,0.15)' }}>
-              <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}><BarChart3 size={20} /> Reporting</h3>
-                <button onClick={() => setShowReporting(false)} className="btn btn-outline" style={{ fontSize: 18, lineHeight: 1 }}>&times;</button>
+            <div className="modal card-modern slide-in" style={{ background: '#fff', borderRadius: 16, padding: 40, minWidth: 520, boxShadow: '0 2px 16px rgba(0,0,0,0.15)' }}>
+              <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 12, fontSize: 28 }}><BarChart3 size={28} /> Reporting</h3>
+                <button onClick={() => setShowReporting(false)} className="btn btn-outline" style={{ fontSize: 22, lineHeight: 1, borderRadius: 12 }}>&times;</button>
               </div>
               <div className="modal-content">
-                <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: 24, marginBottom: 24, flexWrap: 'wrap', alignItems: 'flex-end' }}>
                   <div>
-                    <label>Date Start</label><br />
-                    <input type="date" value={reportStartDate} onChange={e => setReportStartDate(e.target.value)} />
+                    <label style={{ fontWeight: 600, fontSize: 16 }}>Date Start</label><br />
+                    <input type="date" className="form-input-enhanced" style={{ fontSize: 16, minWidth: 160 }} value={reportStartDate} onChange={e => setReportStartDate(e.target.value)} />
                   </div>
                   <div>
-                    <label>Date End</label><br />
-                    <input type="date" value={reportEndDate} onChange={e => setReportEndDate(e.target.value)} />
+                    <label style={{ fontWeight: 600, fontSize: 16 }}>Date End</label><br />
+                    <input type="date" className="form-input-enhanced" style={{ fontSize: 16, minWidth: 160 }} value={reportEndDate} onChange={e => setReportEndDate(e.target.value)} />
                   </div>
                   <div>
-                    <label>Job</label><br />
-                    <select value={reportJob} onChange={e => setReportJob(e.target.value)}>
+                    <label style={{ fontWeight: 600, fontSize: 16 }}>Job</label><br />
+                    <select className="form-input-enhanced" style={{ fontSize: 16, minWidth: 140 }} value={reportJob} onChange={e => setReportJob(e.target.value)}>
                       {jobOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label>Task</label><br />
-                    <select value={reportTask} onChange={e => setReportTask(e.target.value)}>
+                    <label style={{ fontWeight: 600, fontSize: 16 }}>Task</label><br />
+                    <select className="form-input-enhanced" style={{ fontSize: 16, minWidth: 140 }} value={reportTask} onChange={e => setReportTask(e.target.value)}>
                       {taskOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label>Worker</label><br />
-                    <select value={reportWorker} onChange={e => setReportWorker(e.target.value)}>
+                    <label style={{ fontWeight: 600, fontSize: 16 }}>Worker</label><br />
+                    <select className="form-input-enhanced" style={{ fontSize: 16, minWidth: 140 }} value={reportWorker} onChange={e => setReportWorker(e.target.value)}>
                       {workerOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                     </select>
                   </div>
                 </div>
-                <button className="btn btn-primary" onClick={handleRunReport} disabled={reportLoading} style={{ marginBottom: 16 }}>
+                <button className="btn-enhanced" onClick={handleRunReport} disabled={reportLoading} style={{ marginBottom: 24, fontSize: 18, padding: '14px 32px' }}>
                   {reportLoading ? 'Loading...' : 'Run Report'}
                 </button>
                 <div>
                   {reportResults.length > 0 ? (
-                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12 }}>
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Job</th>
-                          <th>Task</th>
-                          <th>Worker</th>
-                          <th>Hours</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {reportResults.map(row => (
-                          <tr key={row.id}>
-                            <td>{row.date}</td>
-                            <td>{row.job}</td>
-                            <td>{row.task}</td>
-                            <td>{row.worker}</td>
-                            <td>{row.hours}</td>
+                    <div className="card-modern" style={{ marginTop: 24, padding: 24 }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 17 }}>
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Job</th>
+                            <th>Task</th>
+                            <th>Worker</th>
+                            <th>Hours</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {reportResults.map(row => (
+                            <tr key={row.id}>
+                              <td>{row.date}</td>
+                              <td>{row.job}</td>
+                              <td>{row.task}</td>
+                              <td>{row.worker}</td>
+                              <td>{row.hours}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   ) : (
-                    <p style={{ marginTop: 12 }}>No results yet. Run a report above.</p>
+                    <p style={{ marginTop: 18, fontSize: 16 }}>No results yet. Run a report above.</p>
                   )}
                 </div>
               </div>
