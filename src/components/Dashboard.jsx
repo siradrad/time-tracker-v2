@@ -37,39 +37,21 @@ function Dashboard({ user }) {
 
   useEffect(() => {
     if (user.role === 'admin') {
-      // Get all jobs from all users
-      const fetchJobs = async () => {
-        const allAddresses = []
-        if (allUsersData) {
-          Object.values(allUsersData).forEach(userData => {
-            (userData.jobAddressesList || userData.jobAddresses || []).forEach(addr => {
-              if (typeof addr === 'string') {
-                allAddresses.push(addr)
-              } else if (addr && addr.address) {
-                allAddresses.push(addr.address)
-              }
-            })
-          })
-        }
-        // Remove duplicates
-        setJobOptions([...new Set(allAddresses)].map(addr => ({ value: addr, label: addr })))
-      }
-      // Get all tasks
+      // Jobs: aggregate from all time entries
+      const allJobs = Array.from(new Set(allTimeEntries.map(e => e.job_address).filter(Boolean)))
+      setJobOptions(allJobs.map(addr => ({ value: addr, label: addr })))
+      // Tasks
       const fetchTasks = async () => {
         const res = await timeTrackerAPI.getAvailableCSITasks()
         setTaskOptions((res.data || []).map(task => ({ value: task, label: task })))
       }
-      // Get all workers
-      const fetchWorkers = async () => {
-        if (allUsersData) {
-          setWorkerOptions(Object.values(allUsersData).map(userData => ({ value: userData.user.id, label: userData.user.name })))
-        }
+      // Workers
+      if (allUsersData) {
+        setWorkerOptions(Object.values(allUsersData).map(userData => ({ value: userData.user.id, label: userData.user.name })))
       }
-      fetchJobs()
       fetchTasks()
-      fetchWorkers()
     }
-  }, [user.role, allUsersData])
+  }, [user.role, allTimeEntries, allUsersData])
 
   const loadDashboardData = async () => {
     try {
@@ -267,28 +249,31 @@ function Dashboard({ user }) {
       <head>
         <title>Report</title>
         <style>
-          body { font-family: 'Inter', sans-serif; background: #f8fafc; margin: 0; padding: 2rem; }
-          .card-modern { background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); max-width: 800px; margin: 2rem auto; padding: 2rem; }
-          .btn-enhanced { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 12px; padding: 12px 24px; color: white; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 4px 14px rgba(102,126,234,0.3), 0 2px 4px rgba(0,0,0,0.1); }
-          .btn-enhanced:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102,126,234,0.4), 0 4px 8px rgba(0,0,0,0.15); }
-          table { width: 100%; border-collapse: collapse; margin-top: 2rem; }
+          body { font-family: 'Inter', sans-serif; background: #f8fafc; margin: 0; padding: 0; }
+          .report-container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+          .card-modern { background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); width: 100%; margin: 2rem auto; padding: 2rem; }
+          .sticky-header th { position: sticky; top: 0; background: #f1f5f9; z-index: 2; }
+          table { width: 100%; border-collapse: collapse; margin-top: 2rem; font-size: 1.05rem; }
           th, td { padding: 1rem; border-bottom: 1px solid #e5e7eb; text-align: left; }
           th { background: #f1f5f9; font-size: 1.1rem; }
           tr:last-child td { border-bottom: none; }
+          @media (max-width: 900px) { .report-container, .card-modern { padding: 1rem; } th, td { padding: 0.5rem; } }
         </style>
       </head>
       <body>
-        <div class="card-modern">
-          <h2 style="margin-top:0;">Report Results</h2>
-          <button class="btn-enhanced" onclick="downloadCSV()">Download CSV</button>
-          <table>
-            <thead>
-              <tr><th>Date</th><th>Job</th><th>Task</th><th>Worker</th><th>Hours</th></tr>
-            </thead>
-            <tbody>
-              ${data.map(row => `<tr><td>${row.date}</td><td>${row.job}</td><td>${row.task}</td><td>${row.worker}</td><td>${row.hours}</td></tr>`).join('')}
-            </tbody>
-          </table>
+        <div class="report-container">
+          <div class="card-modern">
+            <h2 style="margin-top:0;">Report Results</h2>
+            <button class="btn-enhanced" onclick="downloadCSV()">Download CSV</button>
+            <table>
+              <thead>
+                <tr><th>Date</th><th>Job</th><th>Task</th><th>Worker</th><th>Hours</th></tr>
+              </thead>
+              <tbody>
+                ${data.map(row => `<tr><td>${row.date}</td><td>${row.job}</td><td>${row.task}</td><td>${row.worker}</td><td>${row.hours}</td></tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
         </div>
         <script>${downloadScript}</script>
       </body>
@@ -363,13 +348,30 @@ function Dashboard({ user }) {
                 .btn-enhanced:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102,126,234,0.4), 0 4px 8px rgba(0,0,0,0.15); }
                 .form-input-enhanced { width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1.05rem; transition: all 0.3s ease; background: rgba(255,255,255,0.8); margin-bottom: 0.5rem; }
                 .form-input-enhanced:focus { outline: none; border-color: #667eea; background: #fff; box-shadow: 0 0 0 3px rgba(102,126,234,0.1), 0 2px 8px rgba(0,0,0,0.05); transform: translateY(-1px); }
+                .multi-select-group {
+                  display: flex;
+                  flex-direction: column;
+                  gap: 0.5rem;
+                  background: #f8fafc;
+                  border-radius: 8px;
+                  padding: 0.5rem 0.75rem;
+                  border: 1px solid #e5e7eb;
+                  max-height: 180px;
+                  overflow-y: auto;
+                  font-size: 15px;
+                }
+                .scroll-box {
+                  min-height: 40px;
+                  max-height: 180px;
+                  overflow-y: auto;
+                }
               `}</style>
               <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                 <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 12, fontSize: 28 }}><BarChart3 size={28} /> Reporting</h3>
                 <button onClick={() => setShowReporting(false)} className="btn btn-outline" style={{ fontSize: 22, lineHeight: 1, borderRadius: 12 }}>&times;</button>
               </div>
               <div className="modal-content">
-                <div style={{ display: 'flex', gap: 24, marginBottom: 24, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32, marginBottom: 32 }}>
                   <div>
                     <label style={{ fontWeight: 600, fontSize: 16 }}>Date Start</label><br />
                     <input type="date" className="form-input-enhanced" style={{ fontSize: 16, minWidth: 160 }} value={reportStartDate} onChange={e => setReportStartDate(e.target.value)} />
@@ -378,37 +380,50 @@ function Dashboard({ user }) {
                     <label style={{ fontWeight: 600, fontSize: 16 }}>Date End</label><br />
                     <input type="date" className="form-input-enhanced" style={{ fontSize: 16, minWidth: 160 }} value={reportEndDate} onChange={e => setReportEndDate(e.target.value)} />
                   </div>
-                  <div>
-                    <label style={{ fontWeight: 600, fontSize: 16 }}>Job</label><br />
-                    <div className="multi-select-group">
-                      {jobOptions.map(opt => (
-                        <label key={opt.value}>
-                          <input type="checkbox" value={opt.value} onChange={e => setSelectedJobs(prev => e.target.checked ? [...prev, opt.value] : prev.filter(v => v !== opt.value))} />
-                          {opt.label}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label style={{ fontWeight: 600, fontSize: 16 }}>Task</label><br />
-                    <div className="multi-select-group">
-                      {taskOptions.map(opt => (
-                        <label key={opt.value}>
-                          <input type="checkbox" value={opt.value} onChange={e => setSelectedTasks(prev => e.target.checked ? [...prev, opt.value] : prev.filter(v => v !== opt.value))} />
-                          {opt.label}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label style={{ fontWeight: 600, fontSize: 16 }}>Worker</label><br />
-                    <div className="multi-select-group">
-                      {workerOptions.map(opt => (
-                        <label key={opt.value}>
-                          <input type="checkbox" value={opt.value} onChange={e => setSelectedWorkers(prev => e.target.checked ? [...prev, opt.value] : prev.filter(v => v !== opt.value))} />
-                          {opt.label}
-                        </label>
-                      ))}
+                  <div style={{ gridColumn: '1 / span 2', marginTop: 16 }}>
+                    <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                      <div style={{ flex: 1, minWidth: 180 }}>
+                        <div style={{ fontWeight: 700, marginBottom: 4 }}>Job</div>
+                        <div className="multi-select-group scroll-box">
+                          <label style={{ fontWeight: 500 }}>
+                            <input type="checkbox" checked={selectedJobs.length === jobOptions.length} onChange={e => setSelectedJobs(e.target.checked ? jobOptions.map(o => o.value) : [])} /> Select All
+                          </label>
+                          {jobOptions.map(opt => (
+                            <label key={opt.value}>
+                              <input type="checkbox" value={opt.value} checked={selectedJobs.includes(opt.value)} onChange={e => setSelectedJobs(prev => e.target.checked ? [...prev, opt.value] : prev.filter(v => v !== opt.value))} />
+                              {opt.label}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      <div style={{ flex: 1, minWidth: 180 }}>
+                        <div style={{ fontWeight: 700, marginBottom: 4 }}>Task</div>
+                        <div className="multi-select-group scroll-box">
+                          <label style={{ fontWeight: 500 }}>
+                            <input type="checkbox" checked={selectedTasks.length === taskOptions.length} onChange={e => setSelectedTasks(e.target.checked ? taskOptions.map(o => o.value) : [])} /> Select All
+                          </label>
+                          {taskOptions.map(opt => (
+                            <label key={opt.value}>
+                              <input type="checkbox" value={opt.value} checked={selectedTasks.includes(opt.value)} onChange={e => setSelectedTasks(prev => e.target.checked ? [...prev, opt.value] : prev.filter(v => v !== opt.value))} />
+                              {opt.label}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      <div style={{ flex: 1, minWidth: 180 }}>
+                        <div style={{ fontWeight: 700, marginBottom: 4 }}>Worker</div>
+                        <div className="multi-select-group scroll-box">
+                          <label style={{ fontWeight: 500 }}>
+                            <input type="checkbox" checked={selectedWorkers.length === workerOptions.length} onChange={e => setSelectedWorkers(e.target.checked ? workerOptions.map(o => o.value) : [])} /> Select All
+                          </label>
+                          {workerOptions.map(opt => (
+                            <label key={opt.value}>
+                              <input type="checkbox" value={opt.value} checked={selectedWorkers.includes(opt.value)} onChange={e => setSelectedWorkers(prev => e.target.checked ? [...prev, opt.value] : prev.filter(v => v !== opt.value))} />
+                              {opt.label}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
