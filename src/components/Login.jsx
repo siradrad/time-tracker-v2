@@ -32,6 +32,7 @@ function Login({ onLogin }) {
     e.preventDefault()
     setError('')
     setLoading(true)
+    console.log('handleSubmit called with:', { email, password, name, isSignUp })
 
     try {
       let response
@@ -40,11 +41,13 @@ function Login({ onLogin }) {
       } else {
         response = await timeTrackerAPI.signIn(email, password)
       }
+      console.log('Login response:', response)
 
       if (response.error) {
         setError(response.error.message)
       } else {
         localStorage.setItem('lastUserEmail', response.data.user.email)
+        console.log('Set lastUserEmail in localStorage:', response.data.user.email)
         onLogin(response.data.user)
       }
     } catch (err) {
@@ -58,13 +61,16 @@ function Login({ onLogin }) {
   const handleTestLogin = async (testEmail, testPassword) => {
     setLoading(true)
     setError('')
+    console.log('handleTestLogin called with:', { testEmail, testPassword })
 
     try {
       const response = await timeTrackerAPI.signIn(testEmail, testPassword)
+      console.log('Test login response:', response)
       if (response.error) {
         setError(response.error.message)
       } else {
         localStorage.setItem('lastUserEmail', response.data.user.email)
+        console.log('Set lastUserEmail in localStorage:', response.data.user.email)
         onLogin(response.data.user)
       }
     } catch (err) {
