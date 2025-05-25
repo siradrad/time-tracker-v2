@@ -376,6 +376,9 @@ function Dashboard({ user }) {
                 <button onClick={() => setShowReporting(false)} className="btn btn-outline" style={{ fontSize: 22, lineHeight: 1, borderRadius: 12 }}>&times;</button>
               </div>
               <div className="modal-content">
+                <div style={{ marginBottom: 16, color: '#64748b', fontSize: 15, fontStyle: 'italic' }}>
+                  Only jobs, tasks, and workers with at least one time record are available for selection.
+                </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32, marginBottom: 32 }}>
                   <div>
                     <label style={{ fontWeight: 600, fontSize: 16 }}>Date Start</label><br />
