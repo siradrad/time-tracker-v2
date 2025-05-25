@@ -20,8 +20,10 @@ function Login({ onLogin }) {
   useEffect(() => {
     // Check for last logged-in user
     const lastUserEmail = localStorage.getItem('lastUserEmail')
+    console.log('lastUserEmail from localStorage:', lastUserEmail)
     if (lastUserEmail) {
       const user = testAccounts.find(acc => acc.email === lastUserEmail)
+      console.log('lastUser found:', user)
       if (user) setLastUser(user)
     }
   }, [])
