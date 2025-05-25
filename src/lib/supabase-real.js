@@ -1,4 +1,4 @@
-import { supabase, TABLES, INITIAL_USERS, INITIAL_JOB_ADDRESSES } from './supabase-config.js'
+import { supabase, TABLES, INITIAL_USERS, INITIAL_JOB_ADDRESSES, INITIAL_CSI_TASKS } from './supabase-config.js'
 import bcrypt from 'bcryptjs'
 
 class SupabaseDBManager {
@@ -39,6 +39,7 @@ class SupabaseDBManager {
       if (!existingUsers || existingUsers.length === 0) {
         await this._createInitialUsers()
         await this._createInitialJobAddresses()
+        await this._createInitialCSITasks()
       }
     } catch (error) {
       console.error('Error initializing data:', error)
@@ -99,6 +100,31 @@ class SupabaseDBManager {
       console.log('✅ Initial job addresses created')
     } catch (error) {
       console.error('Error creating initial job addresses:', error)
+    }
+  }
+
+  async _createInitialCSITasks() {
+    try {
+      // Check if CSI tasks already exist
+      const { data: existingTasks } = await supabase
+        .from(TABLES.CSI_TASKS)
+        .select('id')
+        .limit(1)
+
+      if (existingTasks && existingTasks.length > 0) return
+
+      const tasksToCreate = INITIAL_CSI_TASKS.map(taskName => ({
+        name: taskName
+      }))
+
+      const { error } = await supabase
+        .from(TABLES.CSI_TASKS)
+        .insert(tasksToCreate)
+
+      if (error) throw error
+      console.log('✅ Initial CSI tasks created')
+    } catch (error) {
+      console.error('Error creating initial CSI tasks:', error)
     }
   }
 
@@ -462,10 +488,24 @@ class SupabaseDBManager {
       // Reinitialize data
       await this._createInitialUsers()
       await this._createInitialJobAddresses()
+      await this._createInitialCSITasks()
       
       console.log('All data cleared and defaults re-initialized.')
       return { error: null }
     } catch (error) {
+      return { error }
+    }
+  }
+
+  async initializeDatabase() {
+    try {
+      await this._createInitialUsers()
+      await this._createInitialJobAddresses()
+      await this._createInitialCSITasks()
+      console.log('✅ Database initialization completed')
+      return { error: null }
+    } catch (error) {
+      console.error('Error initializing database:', error)
       return { error }
     }
   }
@@ -604,6 +644,7 @@ export const timeTrackerAPI = {
   getUserStats: (userId) => dbManager.getUserStats(userId),
   getAllUsersData: () => dbManager.getAllUsersData(),
   clearAllData: () => dbManager.clearAllData(),
+  initializeDatabase: () => dbManager.initializeDatabase(),
   
   // CSI Tasks Management
   getCSITasks: () => dbManager.getCSITasks(),
