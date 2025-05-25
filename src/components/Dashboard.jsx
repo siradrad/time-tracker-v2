@@ -24,27 +24,52 @@ function Dashboard({ user }) {
   const [reportWorker, setReportWorker] = useState('')
   const [reportResults, setReportResults] = useState([])
   const [reportLoading, setReportLoading] = useState(false)
-
-  // Dummy options for now; will be replaced with real data
-  const jobOptions = [
-    { value: '', label: 'All Jobs' },
-    { value: 'Job A', label: 'Job A' },
-    { value: 'Job B', label: 'Job B' }
-  ]
-  const taskOptions = [
-    { value: '', label: 'All Tasks' },
-    { value: 'Task 1', label: 'Task 1' },
-    { value: 'Task 2', label: 'Task 2' }
-  ]
-  const workerOptions = [
-    { value: '', label: 'All Workers' },
-    { value: 'User 1', label: 'User 1' },
-    { value: 'User 2', label: 'User 2' }
-  ]
+  const [jobOptions, setJobOptions] = useState([])
+  const [taskOptions, setTaskOptions] = useState([])
+  const [workerOptions, setWorkerOptions] = useState([])
+  const [selectedJobs, setSelectedJobs] = useState([])
+  const [selectedTasks, setSelectedTasks] = useState([])
+  const [selectedWorkers, setSelectedWorkers] = useState([])
 
   useEffect(() => {
     loadDashboardData()
   }, [user.id])
+
+  useEffect(() => {
+    if (user.role === 'admin') {
+      // Get all jobs from all users
+      const fetchJobs = async () => {
+        const allAddresses = []
+        if (allUsersData) {
+          Object.values(allUsersData).forEach(userData => {
+            (userData.jobAddressesList || userData.jobAddresses || []).forEach(addr => {
+              if (typeof addr === 'string') {
+                allAddresses.push(addr)
+              } else if (addr && addr.address) {
+                allAddresses.push(addr.address)
+              }
+            })
+          })
+        }
+        // Remove duplicates
+        setJobOptions([...new Set(allAddresses)].map(addr => ({ value: addr, label: addr })))
+      }
+      // Get all tasks
+      const fetchTasks = async () => {
+        const res = await timeTrackerAPI.getAvailableCSITasks()
+        setTaskOptions((res.data || []).map(task => ({ value: task, label: task })))
+      }
+      // Get all workers
+      const fetchWorkers = async () => {
+        if (allUsersData) {
+          setWorkerOptions(Object.values(allUsersData).map(userData => ({ value: userData.user.id, label: userData.user.name })))
+        }
+      }
+      fetchJobs()
+      fetchTasks()
+      fetchWorkers()
+    }
+  }, [user.role, allUsersData])
 
   const loadDashboardData = async () => {
     try {
@@ -188,19 +213,31 @@ function Dashboard({ user }) {
 
   const handleRunReport = () => {
     setReportLoading(true)
-    // Simulate loading
     setTimeout(() => {
-      setReportResults([
-        { id: 1, date: '2024-05-01', job: 'Job A', task: 'Task 1', worker: 'User 1', hours: 4 },
-        { id: 2, date: '2024-05-02', job: 'Job B', task: 'Task 2', worker: 'User 2', hours: 3 }
-      ])
+      let filtered = allTimeEntries
+      if (reportStartDate) filtered = filtered.filter(e => new Date(e.date) >= new Date(reportStartDate))
+      if (reportEndDate) filtered = filtered.filter(e => new Date(e.date) <= new Date(reportEndDate))
+      if (selectedJobs.length > 0) filtered = filtered.filter(e => selectedJobs.includes(e.job_address))
+      if (selectedTasks.length > 0) filtered = filtered.filter(e => selectedTasks.includes(e.csi_division))
+      if (selectedWorkers.length > 0) filtered = filtered.filter(e => selectedWorkers.includes(e.user_id))
+      setReportResults(filtered.map((e, i) => ({
+        id: e.id || i,
+        date: e.date,
+        job: e.job_address,
+        task: e.csi_division,
+        worker: e.user_name,
+        hours: (e.duration / 3600).toFixed(2)
+      })))
       setReportLoading(false)
-      // Open in new window
-      openReportWindow([
-        { id: 1, date: '2024-05-01', job: 'Job A', task: 'Task 1', worker: 'User 1', hours: 4 },
-        { id: 2, date: '2024-05-02', job: 'Job B', task: 'Task 2', worker: 'User 2', hours: 3 }
-      ])
-    }, 1000)
+      openReportWindow(filtered.map((e, i) => ({
+        id: e.id || i,
+        date: e.date,
+        job: e.job_address,
+        task: e.csi_division,
+        worker: e.user_name,
+        hours: (e.duration / 3600).toFixed(2)
+      })))
+    }, 500)
   }
 
   const openReportWindow = (data) => {
@@ -343,21 +380,36 @@ function Dashboard({ user }) {
                   </div>
                   <div>
                     <label style={{ fontWeight: 600, fontSize: 16 }}>Job</label><br />
-                    <select className="form-input-enhanced" style={{ fontSize: 16, minWidth: 140 }} value={reportJob} onChange={e => setReportJob(e.target.value)}>
-                      {jobOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                    </select>
+                    <div className="multi-select-group">
+                      {jobOptions.map(opt => (
+                        <label key={opt.value}>
+                          <input type="checkbox" value={opt.value} onChange={e => setSelectedJobs(prev => e.target.checked ? [...prev, opt.value] : prev.filter(v => v !== opt.value))} />
+                          {opt.label}
+                        </label>
+                      ))}
+                    </div>
                   </div>
                   <div>
                     <label style={{ fontWeight: 600, fontSize: 16 }}>Task</label><br />
-                    <select className="form-input-enhanced" style={{ fontSize: 16, minWidth: 140 }} value={reportTask} onChange={e => setReportTask(e.target.value)}>
-                      {taskOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                    </select>
+                    <div className="multi-select-group">
+                      {taskOptions.map(opt => (
+                        <label key={opt.value}>
+                          <input type="checkbox" value={opt.value} onChange={e => setSelectedTasks(prev => e.target.checked ? [...prev, opt.value] : prev.filter(v => v !== opt.value))} />
+                          {opt.label}
+                        </label>
+                      ))}
+                    </div>
                   </div>
                   <div>
                     <label style={{ fontWeight: 600, fontSize: 16 }}>Worker</label><br />
-                    <select className="form-input-enhanced" style={{ fontSize: 16, minWidth: 140 }} value={reportWorker} onChange={e => setReportWorker(e.target.value)}>
-                      {workerOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                    </select>
+                    <div className="multi-select-group">
+                      {workerOptions.map(opt => (
+                        <label key={opt.value}>
+                          <input type="checkbox" value={opt.value} onChange={e => setSelectedWorkers(prev => e.target.checked ? [...prev, opt.value] : prev.filter(v => v !== opt.value))} />
+                          {opt.label}
+                        </label>
+                      ))}
+                    </div>
                   </div>
                 </div>
                 <button className="btn-enhanced" onClick={handleRunReport} disabled={reportLoading} style={{ marginBottom: 24, fontSize: 18, padding: '14px 32px' }}>
