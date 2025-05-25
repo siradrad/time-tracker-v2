@@ -48,6 +48,17 @@ class SupabaseDBManager {
 
   async _createInitialUsers() {
     try {
+      // Check if users already exist
+      const { data: existingUsers } = await supabase
+        .from(TABLES.USERS)
+        .select('id')
+        .limit(1)
+
+      if (existingUsers && existingUsers.length > 0) {
+        console.log('✅ Users already exist, skipping creation')
+        return
+      }
+
       const usersToCreate = []
       
       for (const user of INITIAL_USERS) {
@@ -73,6 +84,17 @@ class SupabaseDBManager {
 
   async _createInitialJobAddresses() {
     try {
+      // Check if job addresses already exist
+      const { data: existingAddresses } = await supabase
+        .from(TABLES.JOB_ADDRESSES)
+        .select('id')
+        .limit(1)
+
+      if (existingAddresses && existingAddresses.length > 0) {
+        console.log('✅ Job addresses already exist, skipping creation')
+        return
+      }
+
       // Get all users
       const { data: users } = await supabase
         .from(TABLES.USERS)
