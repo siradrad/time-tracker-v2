@@ -2,8 +2,8 @@ import { createClient } from '@supabase/supabase-js'
 
 // Supabase configuration
 // You'll need to replace these with your actual Supabase project URL and anon key
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://lyborpfxgfioavqutiap.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5Ym9ycGZ4Z2Zpb2F2cXV0aWFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMjYxNzIsImV4cCI6MjA2MzYwMjE3Mn0.rn0Wx7ZETpgGYJsEoH9zuFcu33C0iQ5vlPAiUuG2ECM'
 
 // Create Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
