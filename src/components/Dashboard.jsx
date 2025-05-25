@@ -37,8 +37,15 @@ function Dashboard({ user }) {
 
   useEffect(() => {
     if (user.role === 'admin') {
-      // Jobs: aggregate from all time entries
-      const allJobs = Array.from(new Set(allTimeEntries.map(e => e.job_address).filter(Boolean)))
+      // Jobs: aggregate from all time entries, but filter out break/travel types
+      const EXCLUDE_JOBS = [
+        'Break/Lunch', 'Break/Lunch Time', 'Travel', 'Travel Time'
+      ]
+      const allJobs = Array.from(new Set(
+        allTimeEntries
+          .map(e => e.job_address)
+          .filter(addr => addr && !EXCLUDE_JOBS.includes(addr))
+      ))
       setJobOptions(allJobs.map(addr => ({ value: addr, label: addr })))
       // Tasks: aggregate from all time entries
       const allTasks = Array.from(new Set(allTimeEntries.map(e => e.csi_division).filter(Boolean)))
