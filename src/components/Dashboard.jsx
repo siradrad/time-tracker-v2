@@ -40,18 +40,17 @@ function Dashboard({ user }) {
       // Jobs: aggregate from all time entries
       const allJobs = Array.from(new Set(allTimeEntries.map(e => e.job_address).filter(Boolean)))
       setJobOptions(allJobs.map(addr => ({ value: addr, label: addr })))
-      // Tasks
-      const fetchTasks = async () => {
-        const res = await timeTrackerAPI.getAvailableCSITasks()
-        setTaskOptions((res.data || []).map(task => ({ value: task, label: task })))
-      }
-      // Workers
-      if (allUsersData) {
-        setWorkerOptions(Object.values(allUsersData).map(userData => ({ value: userData.user.id, label: userData.user.name })))
-      }
-      fetchTasks()
+      // Tasks: aggregate from all time entries
+      const allTasks = Array.from(new Set(allTimeEntries.map(e => e.csi_division).filter(Boolean)))
+      setTaskOptions(allTasks.map(task => ({ value: task, label: task })))
+      // Workers: aggregate from all time entries
+      const workerMap = {}
+      allTimeEntries.forEach(e => {
+        if (e.user_id && e.user_name) workerMap[e.user_id] = e.user_name
+      })
+      setWorkerOptions(Object.entries(workerMap).map(([id, name]) => ({ value: id, label: name })))
     }
-  }, [user.role, allTimeEntries, allUsersData])
+  }, [user.role, allTimeEntries])
 
   const loadDashboardData = async () => {
     try {
@@ -258,6 +257,12 @@ function Dashboard({ user }) {
           th { background: #f1f5f9; font-size: 1.1rem; }
           tr:last-child td { border-bottom: none; }
           @media (max-width: 900px) { .report-container, .card-modern { padding: 1rem; } th, td { padding: 0.5rem; } }
+          .multi-select-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+            margin-bottom: 2px;
+          }
         </style>
       </head>
       <body>
