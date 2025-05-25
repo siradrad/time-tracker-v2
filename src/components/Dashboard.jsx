@@ -17,6 +17,30 @@ function Dashboard({ user }) {
     months: {},
     biweeks: {}
   })
+  const [reportStartDate, setReportStartDate] = useState('')
+  const [reportEndDate, setReportEndDate] = useState('')
+  const [reportJob, setReportJob] = useState('')
+  const [reportTask, setReportTask] = useState('')
+  const [reportWorker, setReportWorker] = useState('')
+  const [reportResults, setReportResults] = useState([])
+  const [reportLoading, setReportLoading] = useState(false)
+
+  // Dummy options for now; will be replaced with real data
+  const jobOptions = [
+    { value: '', label: 'All Jobs' },
+    { value: 'Job A', label: 'Job A' },
+    { value: 'Job B', label: 'Job B' }
+  ]
+  const taskOptions = [
+    { value: '', label: 'All Tasks' },
+    { value: 'Task 1', label: 'Task 1' },
+    { value: 'Task 2', label: 'Task 2' }
+  ]
+  const workerOptions = [
+    { value: '', label: 'All Workers' },
+    { value: 'User 1', label: 'User 1' },
+    { value: 'User 2', label: 'User 2' }
+  ]
 
   useEffect(() => {
     loadDashboardData()
@@ -162,6 +186,18 @@ function Dashboard({ user }) {
       .slice(0, 5)
   }
 
+  const handleRunReport = () => {
+    setReportLoading(true)
+    // Simulate loading
+    setTimeout(() => {
+      setReportResults([
+        { id: 1, date: '2024-05-01', job: 'Job A', task: 'Task 1', worker: 'User 1', hours: 4 },
+        { id: 2, date: '2024-05-02', job: 'Job B', task: 'Task 2', worker: 'User 2', hours: 3 }
+      ])
+      setReportLoading(false)
+    }, 1000)
+  }
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -221,13 +257,71 @@ function Dashboard({ user }) {
         {/* Reporting Modal */}
         {showReporting && (
           <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-            <div className="modal" style={{ background: '#fff', borderRadius: 8, padding: 32, minWidth: 320, boxShadow: '0 2px 16px rgba(0,0,0,0.15)' }}>
+            <div className="modal" style={{ background: '#fff', borderRadius: 8, padding: 32, minWidth: 480, boxShadow: '0 2px 16px rgba(0,0,0,0.15)' }}>
               <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}><BarChart3 size={20} /> Reporting</h3>
                 <button onClick={() => setShowReporting(false)} className="btn btn-outline" style={{ fontSize: 18, lineHeight: 1 }}>&times;</button>
               </div>
               <div className="modal-content">
-                <p>Reporting coming soon!</p>
+                <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+                  <div>
+                    <label>Date Start</label><br />
+                    <input type="date" value={reportStartDate} onChange={e => setReportStartDate(e.target.value)} />
+                  </div>
+                  <div>
+                    <label>Date End</label><br />
+                    <input type="date" value={reportEndDate} onChange={e => setReportEndDate(e.target.value)} />
+                  </div>
+                  <div>
+                    <label>Job</label><br />
+                    <select value={reportJob} onChange={e => setReportJob(e.target.value)}>
+                      {jobOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label>Task</label><br />
+                    <select value={reportTask} onChange={e => setReportTask(e.target.value)}>
+                      {taskOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label>Worker</label><br />
+                    <select value={reportWorker} onChange={e => setReportWorker(e.target.value)}>
+                      {workerOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <button className="btn btn-primary" onClick={handleRunReport} disabled={reportLoading} style={{ marginBottom: 16 }}>
+                  {reportLoading ? 'Loading...' : 'Run Report'}
+                </button>
+                <div>
+                  {reportResults.length > 0 ? (
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12 }}>
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Job</th>
+                          <th>Task</th>
+                          <th>Worker</th>
+                          <th>Hours</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {reportResults.map(row => (
+                          <tr key={row.id}>
+                            <td>{row.date}</td>
+                            <td>{row.job}</td>
+                            <td>{row.task}</td>
+                            <td>{row.worker}</td>
+                            <td>{row.hours}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <p style={{ marginTop: 12 }}>No results yet. Run a report above.</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
