@@ -271,4 +271,4 @@ For support, please open an issue in the GitHub repository or contact the develo
 
 ---
 
-**Time Tracker V2** - Built for modern construction and project management workflows with enterprise-grade database backend. 🏗️ 💾 
+**Time Tracker V2** - Built for modern construction and project management workflows with enterprise-grade database backend. 🏗️ 💾 # Environment variables configured
