@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { timeTrackerAPI } from '../lib/supabase.js'
 import { Clock, User, Lock, Mail, UserPlus, LogIn } from 'lucide-react'
 
@@ -9,12 +9,22 @@ function Login({ onLogin }) {
   const [name, setName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [lastUser, setLastUser] = useState(null)
 
   const testAccounts = [
     { email: 'admin@timetracker.app', password: 'admin123', name: 'System Admin', role: 'admin' },
     { email: 'stacy@timetracker.app', password: 'stacy123', name: 'Stacy', role: 'user' },
     { email: 'jeremy@timetracker.app', password: 'jeremy123', name: 'Jeremy', role: 'user' }
   ]
+
+  useEffect(() => {
+    // Check for last logged-in user
+    const lastUserEmail = localStorage.getItem('lastUserEmail')
+    if (lastUserEmail) {
+      const user = testAccounts.find(acc => acc.email === lastUserEmail)
+      if (user) setLastUser(user)
+    }
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -32,6 +42,7 @@ function Login({ onLogin }) {
       if (response.error) {
         setError(response.error.message)
       } else {
+        localStorage.setItem('lastUserEmail', response.data.user.email)
         onLogin(response.data.user)
       }
     } catch (err) {
@@ -51,6 +62,7 @@ function Login({ onLogin }) {
       if (response.error) {
         setError(response.error.message)
       } else {
+        localStorage.setItem('lastUserEmail', response.data.user.email)
         onLogin(response.data.user)
       }
     } catch (err) {
@@ -58,6 +70,12 @@ function Login({ onLogin }) {
       console.error('Test login error:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleQuickLogin = () => {
+    if (lastUser) {
+      handleTestLogin(lastUser.email, lastUser.password)
     }
   }
 
@@ -160,28 +178,42 @@ function Login({ onLogin }) {
             </button>
           </form>
 
-          <div className="test-accounts">
-            <h3>Test Accounts</h3>
-            <p className="test-accounts-note">
-              Click any test account below to login instantly
-            </p>
-            <div className="test-accounts-grid">
-              {testAccounts.map((account) => (
-                <button
-                  key={account.email}
-                  onClick={() => handleTestLogin(account.email, account.password)}
-                  className="test-account-card"
-                  disabled={loading}
-                >
-                  <div className="test-account-role">
-                    {account.role === 'admin' ? '👑' : '👤'} {account.role}
-                  </div>
-                  <div className="test-account-name">{account.name}</div>
-                  <div className="test-account-email">{account.email}</div>
-                </button>
-              ))}
+          {/* Quick Login for last user */}
+          {lastUser ? (
+            <div className="quick-login">
+              <button
+                onClick={handleQuickLogin}
+                className="btn btn-primary"
+                disabled={loading}
+                style={{ width: '100%', marginTop: '1rem' }}
+              >
+                Quick Login as {lastUser.name}
+              </button>
             </div>
-          </div>
+          ) : (
+            <div className="test-accounts">
+              <h3>Test Accounts</h3>
+              <p className="test-accounts-note">
+                Click any test account below to login instantly
+              </p>
+              <div className="test-accounts-grid">
+                {testAccounts.map((account) => (
+                  <button
+                    key={account.email}
+                    onClick={() => handleTestLogin(account.email, account.password)}
+                    className="test-account-card"
+                    disabled={loading}
+                  >
+                    <div className="test-account-role">
+                      {account.role === 'admin' ? '👑' : '👤'} {account.role}
+                    </div>
+                    <div className="test-account-name">{account.name}</div>
+                    <div className="test-account-email">{account.email}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
