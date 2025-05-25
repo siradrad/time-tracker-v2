@@ -157,7 +157,10 @@ function App() {
               return (
                 <li key={item.id}>
                   <button
-                    onClick={() => setCurrentView(item.id)}
+                    onClick={() => {
+                      console.log('Nav button clicked:', item.id);
+                      setCurrentView(item.id)
+                    }}
                     className={`nav-button ${currentView === item.id ? 'active' : ''}`}
                   >
                     <Icon size={20} />
