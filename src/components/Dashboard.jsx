@@ -11,6 +11,7 @@ function Dashboard({ user }) {
   const [error, setError] = useState('')
   const [editingEntry, setEditingEntry] = useState(null)
   const [showAddUser, setShowAddUser] = useState(false)
+  const [showReporting, setShowReporting] = useState(false)
   const [expandedSections, setExpandedSections] = useState({
     years: {},
     months: {},
@@ -206,8 +207,31 @@ function Dashboard({ user }) {
               <UserPlus size={16} />
               Add New User
             </button>
+            <button
+              onClick={() => setShowReporting(true)}
+              className="btn btn-secondary"
+              style={{ marginLeft: '0.5rem' }}
+            >
+              <BarChart3 size={16} />
+              Reporting
+            </button>
           </div>
         </div>
+
+        {/* Reporting Modal */}
+        {showReporting && (
+          <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+            <div className="modal" style={{ background: '#fff', borderRadius: 8, padding: 32, minWidth: 320, boxShadow: '0 2px 16px rgba(0,0,0,0.15)' }}>
+              <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}><BarChart3 size={20} /> Reporting</h3>
+                <button onClick={() => setShowReporting(false)} className="btn btn-outline" style={{ fontSize: 18, lineHeight: 1 }}>&times;</button>
+              </div>
+              <div className="modal-content">
+                <p>Reporting coming soon!</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Admin Stats Overview */}
         <div className="stats-grid">
