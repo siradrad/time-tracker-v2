@@ -42,13 +42,15 @@ function Login({ onLogin }) {
         response = await timeTrackerAPI.signIn(email, password)
       }
       console.log('Login response:', response)
+      console.log('Login response data:', response.data)
 
       if (response.error) {
         setError(response.error.message)
       } else {
-        localStorage.setItem('lastUserEmail', response.data.user.email)
-        console.log('Set lastUserEmail in localStorage:', response.data.user.email)
-        onLogin(response.data.user)
+        const userEmail = response.data.user?.email || response.data.email || ''
+        localStorage.setItem('lastUserEmail', userEmail)
+        console.log('Set lastUserEmail in localStorage:', userEmail)
+        onLogin(response.data.user || response.data)
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')
@@ -66,12 +68,14 @@ function Login({ onLogin }) {
     try {
       const response = await timeTrackerAPI.signIn(testEmail, testPassword)
       console.log('Test login response:', response)
+      console.log('Test login response data:', response.data)
       if (response.error) {
         setError(response.error.message)
       } else {
-        localStorage.setItem('lastUserEmail', response.data.user.email)
-        console.log('Set lastUserEmail in localStorage:', response.data.user.email)
-        onLogin(response.data.user)
+        const userEmail = response.data.user?.email || response.data.email || ''
+        localStorage.setItem('lastUserEmail', userEmail)
+        console.log('Set lastUserEmail in localStorage:', userEmail)
+        onLogin(response.data.user || response.data)
       }
     } catch (err) {
       setError('Failed to login with test account')
