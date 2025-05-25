@@ -467,12 +467,22 @@
   }
   .user-header {
     margin-bottom: 0.5rem;
+    display: block;
+    width: 100%;
+  }
+  .user-info {
+    display: block;
+    margin-bottom: 0.5rem;
+    background: var(--color-accent-soft, #eff6ff);
+    padding: 0.5rem;
+    border-radius: var(--border-radius-md, 6px);
   }
   .user-name, .user-email, .user-role {
     font-size: 1rem;
     word-break: break-all;
     white-space: normal;
     line-height: 1.2;
+    display: block;
   }
   .user-name {
     font-size: 1.1rem;
@@ -483,6 +493,11 @@
   }
   .user-role {
     font-size: 0.8rem;
+    margin-top: 0.25rem;
+  }
+  .user-stats {
+    flex-direction: column;
+    gap: 0.5rem;
   }
 }
 
