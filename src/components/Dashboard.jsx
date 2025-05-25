@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { timeTrackerAPI } from '../lib/supabase.js'
 import AddUser from './AddUser.jsx'
 import { BarChart3, Clock, MapPin, List, Calendar, Briefcase, Users, Edit, Trash2, Plus, User, ChevronDown, ChevronRight, UserPlus } from 'lucide-react'
-import '../aesthetic-changes/css/example-improvements.css'
 
 function Dashboard({ user }) {
   const [stats, setStats] = useState(null)
@@ -230,10 +229,11 @@ function Dashboard({ user }) {
       <html>
       <head>
         <title>Report</title>
-        <link rel="stylesheet" href="/aesthetic-changes/css/example-improvements.css" />
         <style>
           body { font-family: 'Inter', sans-serif; background: #f8fafc; margin: 0; padding: 2rem; }
-          .card-modern { max-width: 800px; margin: 2rem auto; padding: 2rem; }
+          .card-modern { background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); max-width: 800px; margin: 2rem auto; padding: 2rem; }
+          .btn-enhanced { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 12px; padding: 12px 24px; color: white; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 4px 14px rgba(102,126,234,0.3), 0 2px 4px rgba(0,0,0,0.1); }
+          .btn-enhanced:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102,126,234,0.4), 0 4px 8px rgba(0,0,0,0.15); }
           table { width: 100%; border-collapse: collapse; margin-top: 2rem; }
           th, td { padding: 1rem; border-bottom: 1px solid #e5e7eb; text-align: left; }
           th { background: #f1f5f9; font-size: 1.1rem; }
@@ -241,7 +241,7 @@ function Dashboard({ user }) {
         </style>
       </head>
       <body>
-        <div class="card-modern slide-in">
+        <div class="card-modern">
           <h2 style="margin-top:0;">Report Results</h2>
           <button class="btn-enhanced" onclick="downloadCSV()">Download CSV</button>
           <table>
@@ -320,6 +320,13 @@ function Dashboard({ user }) {
         {showReporting && (
           <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
             <div className="modal card-modern slide-in" style={{ background: '#fff', borderRadius: 16, padding: 40, minWidth: 520, boxShadow: '0 2px 16px rgba(0,0,0,0.15)' }}>
+              <style>{`
+                .card-modern { background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+                .btn-enhanced { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 12px; padding: 14px 32px; color: white; font-weight: 600; font-size: 1.1rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 4px 14px rgba(102,126,234,0.3), 0 2px 4px rgba(0,0,0,0.1); }
+                .btn-enhanced:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102,126,234,0.4), 0 4px 8px rgba(0,0,0,0.15); }
+                .form-input-enhanced { width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1.05rem; transition: all 0.3s ease; background: rgba(255,255,255,0.8); margin-bottom: 0.5rem; }
+                .form-input-enhanced:focus { outline: none; border-color: #667eea; background: #fff; box-shadow: 0 0 0 3px rgba(102,126,234,0.1), 0 2px 8px rgba(0,0,0,0.05); transform: translateY(-1px); }
+              `}</style>
               <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                 <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 12, fontSize: 28 }}><BarChart3 size={28} /> Reporting</h3>
                 <button onClick={() => setShowReporting(false)} className="btn btn-outline" style={{ fontSize: 22, lineHeight: 1, borderRadius: 12 }}>&times;</button>
