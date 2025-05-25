@@ -208,31 +208,55 @@ function Dashboard({ user }) {
       if (selectedJobs.length > 0) filtered = filtered.filter(e => selectedJobs.includes(e.job_address))
       if (selectedTasks.length > 0) filtered = filtered.filter(e => selectedTasks.includes(e.csi_division))
       if (selectedWorkers.length > 0) filtered = filtered.filter(e => selectedWorkers.includes(e.user_id))
-      setReportResults(filtered.map((e, i) => ({
-        id: e.id || i,
-        date: e.date,
-        job: e.job_address,
-        task: e.csi_division,
-        worker: e.user_name,
-        hours: (e.duration / 3600).toFixed(2)
-      })))
+
+      // Determine if all are selected for each filter
+      const allJobsSelected = selectedJobs.length === jobOptions.length
+      const allTasksSelected = selectedTasks.length === taskOptions.length
+      const allWorkersSelected = selectedWorkers.length === workerOptions.length
+
+      let results = []
+      let isAggregated = allJobsSelected && allTasksSelected && allWorkersSelected
+      if (isAggregated) {
+        // Aggregate: group by date, job, task, worker
+        const groupMap = {}
+        filtered.forEach(e => {
+          const key = [e.date, e.job_address, e.csi_division, e.user_name].join('|')
+          if (!groupMap[key]) {
+            groupMap[key] = {
+              date: e.date,
+              job: e.job_address,
+              task: e.csi_division,
+              worker: e.user_name,
+              hours: 0
+            }
+          }
+          groupMap[key].hours += (e.duration / 3600)
+        })
+        results = Object.values(groupMap).map((row, i) => ({ ...row, id: i, hours: row.hours.toFixed(2) }))
+      } else {
+        // Detailed: one row per time entry
+        results = filtered.map((e, i) => ({
+          id: e.id || i,
+          date: e.date,
+          job: e.job_address,
+          task: e.csi_division,
+          worker: e.user_name,
+          hours: (e.duration / 3600).toFixed(2)
+        }))
+      }
+      setReportResults(results)
       setReportLoading(false)
-      openReportWindow(filtered.map((e, i) => ({
-        id: e.id || i,
-        date: e.date,
-        job: e.job_address,
-        task: e.csi_division,
-        worker: e.user_name,
-        hours: (e.duration / 3600).toFixed(2)
-      })))
+      openReportWindow(results, isAggregated)
     }, 500)
   }
 
-  const openReportWindow = (data) => {
+  const openReportWindow = (data, isAggregated) => {
     const win = window.open('', '_blank', 'width=900,height=700')
     if (!win) return
     const csvRows = [
-      ['Date', 'Job', 'Task', 'Worker', 'Hours'],
+      isAggregated
+        ? ['Date', 'Job', 'Task', 'Worker', 'Hours']
+        : ['Date', 'Job', 'Task', 'Worker', 'Hours'],
       ...data.map(row => [row.date, row.job, row.task, row.worker, row.hours])
     ]
     const csvContent = csvRows.map(e => e.join(",")).join("\n")
@@ -264,12 +288,6 @@ function Dashboard({ user }) {
           th { background: #f1f5f9; font-size: 1.1rem; }
           tr:last-child td { border-bottom: none; }
           @media (max-width: 900px) { .report-container, .card-modern { padding: 1rem; } th, td { padding: 0.5rem; } }
-          .multi-select-group label {
-            display: flex;
-            align-items: center;
-            gap: 0.5em;
-            margin-bottom: 2px;
-          }
         </style>
       </head>
       <body>
@@ -278,11 +296,25 @@ function Dashboard({ user }) {
             <h2 style="margin-top:0;">Report Results</h2>
             <button class="btn-enhanced" onclick="downloadCSV()">Download CSV</button>
             <table>
-              <thead>
-                <tr><th>Date</th><th>Job</th><th>Task</th><th>Worker</th><th>Hours</th></tr>
+              <thead class="sticky-header">
+                <tr>
+                  <th>Date</th>
+                  <th>Job</th>
+                  <th>Task</th>
+                  <th>Worker</th>
+                  <th>Hours</th>
+                </tr>
               </thead>
               <tbody>
-                ${data.map(row => `<tr><td>${row.date}</td><td>${row.job}</td><td>${row.task}</td><td>${row.worker}</td><td>${row.hours}</td></tr>`).join('')}
+                ${data.map(row => `
+                  <tr>
+                    <td>${row.date}</td>
+                    <td>${row.job}</td>
+                    <td>${row.task}</td>
+                    <td>${row.worker}</td>
+                    <td>${row.hours}</td>
+                  </tr>
+                `).join('')}
               </tbody>
             </table>
           </div>
