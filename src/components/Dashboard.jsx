@@ -209,32 +209,31 @@ function Dashboard({ user }) {
       if (selectedTasks.length > 0) filtered = filtered.filter(e => selectedTasks.includes(e.csi_division))
       if (selectedWorkers.length > 0) filtered = filtered.filter(e => selectedWorkers.includes(e.user_id))
 
-      // Determine if all are selected for each filter
+      // Determine for each filter if all are selected
       const allJobsSelected = selectedJobs.length === jobOptions.length
       const allTasksSelected = selectedTasks.length === taskOptions.length
       const allWorkersSelected = selectedWorkers.length === workerOptions.length
 
+      // Build grouping key based on partial filters
+      const groupBy = []
+      if (!allJobsSelected) groupBy.push('job_address')
+      if (!allTasksSelected) groupBy.push('csi_division')
+      if (!allWorkersSelected) groupBy.push('user_id')
+      groupBy.push('date') // Always group by date for clarity
+
       let results = []
-      let isAggregated = allJobsSelected && allTasksSelected && allWorkersSelected
-      if (isAggregated) {
-        // Aggregate: group by date, job, task, worker
-        const groupMap = {}
-        filtered.forEach(e => {
-          const key = [e.date, e.job_address, e.csi_division, e.user_name].join('|')
-          if (!groupMap[key]) {
-            groupMap[key] = {
-              date: e.date,
-              job: e.job_address,
-              task: e.csi_division,
-              worker: e.user_name,
-              hours: 0
-            }
-          }
-          groupMap[key].hours += (e.duration / 3600)
-        })
-        results = Object.values(groupMap).map((row, i) => ({ ...row, id: i, hours: row.hours.toFixed(2) }))
-      } else {
-        // Detailed: one row per time entry
+      let headers = ['Date']
+      if (!allJobsSelected) headers.push('Job')
+      if (!allTasksSelected) headers.push('Task')
+      if (!allWorkersSelected) headers.push('Worker')
+      headers.push('Hours')
+
+      if (groupBy.length === 1 && groupBy[0] === 'date') {
+        // All filters are 'all', aggregate everything
+        const totalHours = filtered.reduce((sum, e) => sum + (e.duration / 3600), 0)
+        results = [{ date: 'All', hours: totalHours.toFixed(2) }]
+      } else if (groupBy.length === 4) {
+        // All are partial, show detailed (one row per entry)
         results = filtered.map((e, i) => ({
           id: e.id || i,
           date: e.date,
@@ -243,21 +242,40 @@ function Dashboard({ user }) {
           worker: e.user_name,
           hours: (e.duration / 3600).toFixed(2)
         }))
+      } else {
+        // Group by the selected fields
+        const groupMap = {}
+        filtered.forEach(e => {
+          const keyParts = []
+          if (!allJobsSelected) keyParts.push(e.job_address)
+          if (!allTasksSelected) keyParts.push(e.csi_division)
+          if (!allWorkersSelected) keyParts.push(e.user_name)
+          keyParts.push(e.date)
+          const key = keyParts.join('|')
+          if (!groupMap[key]) {
+            const row = { date: e.date }
+            if (!allJobsSelected) row.job = e.job_address
+            if (!allTasksSelected) row.task = e.csi_division
+            if (!allWorkersSelected) row.worker = e.user_name
+            row.hours = 0
+            groupMap[key] = row
+          }
+          groupMap[key].hours += (e.duration / 3600)
+        })
+        results = Object.values(groupMap).map((row, i) => ({ ...row, id: i, hours: row.hours.toFixed(2) }))
       }
       setReportResults(results)
       setReportLoading(false)
-      openReportWindow(results, isAggregated)
+      openReportWindow(results, headers)
     }, 500)
   }
 
-  const openReportWindow = (data, isAggregated) => {
+  const openReportWindow = (data, headers) => {
     const win = window.open('', '_blank', 'width=900,height=700')
     if (!win) return
     const csvRows = [
-      isAggregated
-        ? ['Date', 'Job', 'Task', 'Worker', 'Hours']
-        : ['Date', 'Job', 'Task', 'Worker', 'Hours'],
-      ...data.map(row => [row.date, row.job, row.task, row.worker, row.hours])
+      headers,
+      ...data.map(row => headers.map(header => row[header]))
     ]
     const csvContent = csvRows.map(e => e.join(",")).join("\n")
     const downloadScript = `
@@ -298,23 +316,11 @@ function Dashboard({ user }) {
             <table>
               <thead class="sticky-header">
                 <tr>
-                  <th>Date</th>
-                  <th>Job</th>
-                  <th>Task</th>
-                  <th>Worker</th>
-                  <th>Hours</th>
+                  ${headers.map(header => `<th>${header}</th>`).join('')}
                 </tr>
               </thead>
               <tbody>
-                ${data.map(row => `
-                  <tr>
-                    <td>${row.date}</td>
-                    <td>${row.job}</td>
-                    <td>${row.task}</td>
-                    <td>${row.worker}</td>
-                    <td>${row.hours}</td>
-                  </tr>
-                `).join('')}
+                ${data.map(row => `<tr>${headers.map(header => `<td>${row[header]}</td>`).join('')}</tr>`).join('')}
               </tbody>
             </table>
           </div>
@@ -483,21 +489,17 @@ function Dashboard({ user }) {
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 17 }}>
                         <thead>
                           <tr>
-                            <th>Date</th>
-                            <th>Job</th>
-                            <th>Task</th>
-                            <th>Worker</th>
-                            <th>Hours</th>
+                            {headers.map(header => (
+                              <th key={header}>{header}</th>
+                            ))}
                           </tr>
                         </thead>
                         <tbody>
                           {reportResults.map(row => (
                             <tr key={row.id}>
-                              <td>{row.date}</td>
-                              <td>{row.job}</td>
-                              <td>{row.task}</td>
-                              <td>{row.worker}</td>
-                              <td>{row.hours}</td>
+                              {headers.map(header => (
+                                <td key={header}>{row[header]}</td>
+                              ))}
                             </tr>
                           ))}
                         </tbody>
