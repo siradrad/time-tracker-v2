@@ -460,6 +460,30 @@
   .header-right .btn span {
     display: none; /* Hide button text, keep only icons */
   }
+
+  /* User card mobile fixes */
+  .user-card {
+    padding: 0.75rem;
+  }
+  .user-header {
+    margin-bottom: 0.5rem;
+  }
+  .user-name, .user-email, .user-role {
+    font-size: 1rem;
+    word-break: break-all;
+    white-space: normal;
+    line-height: 1.2;
+  }
+  .user-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+  .user-email {
+    font-size: 0.9rem;
+  }
+  .user-role {
+    font-size: 0.8rem;
+  }
 }
 
 /* Modal Styles for Add User */

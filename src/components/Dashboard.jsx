@@ -140,7 +140,8 @@ function Dashboard({ user }) {
   }
 
   const formatHours = (hours) => {
-    return hours.toFixed(2)
+    if (isNaN(hours) || !isFinite(hours)) return "0.00";
+    return hours.toFixed(2);
   }
 
   const formatDuration = (seconds) => {
@@ -273,7 +274,7 @@ function Dashboard({ user }) {
             ) : (
               <div className="hierarchical-entries">
                 {years.map(year => {
-                  const yearEntries = Object.values(groupedEntries[year]).flat().flat()
+                  const yearEntries = Object.values(groupedEntries[year]).flat(Infinity)
                   const yearStats = calculateGroupStats(yearEntries)
                   const yearKey = `year-${year}`
                   const isYearExpanded = expandedSections.years[yearKey]
