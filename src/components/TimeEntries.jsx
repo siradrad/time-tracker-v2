@@ -9,6 +9,7 @@ function TimeEntries({ user }) {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [showTimeEntryModal, setShowTimeEntryModal] = useState(false)
+  const [editingEntry, setEditingEntry] = useState(null)
 
   useEffect(() => {
     loadEntries()
@@ -67,6 +68,25 @@ function TimeEntries({ user }) {
 
   const handleAddEntry = () => {
     setShowTimeEntryModal(true)
+  }
+
+  const handleEditEntry = (entry) => {
+    setEditingEntry(entry)
+    setShowTimeEntryModal(true)
+  }
+
+  const handleSaveEdit = async (updatedEntry) => {
+    try {
+      const res = await timeTrackerAPI.editTimeEntry(user.id, editingEntry.id, { ...updatedEntry, manual: editingEntry.manual || false })
+      if (res.error) throw res.error
+      setShowTimeEntryModal(false)
+      setEditingEntry(null)
+      setSuccess('Time entry updated!')
+      setTimeout(() => setSuccess(''), 3000)
+      await loadEntries()
+    } catch (err) {
+      setError('Failed to update time entry: ' + (err.message || err))
+    }
   }
 
   const handleSaveTimeEntry = async (entryData) => {
@@ -188,6 +208,15 @@ function TimeEntries({ user }) {
                       )}
                     </div>
                     <div className="entry-actions">
+                      {user.role !== 'admin' && (
+                        <button
+                          onClick={() => handleEditEntry(entry)}
+                          className="btn btn-secondary btn-sm"
+                          title="Edit entry"
+                        >
+                          <Edit size={14} />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDeleteEntry(entry.id)}
                         className="btn btn-danger btn-sm"
@@ -234,13 +263,13 @@ function TimeEntries({ user }) {
       {showTimeEntryModal && (
         <TimeEntryModal
           isOpen={showTimeEntryModal}
-          onClose={() => setShowTimeEntryModal(false)}
-          onSave={handleSaveTimeEntry}
-          entry={{}}
+          onClose={() => { setShowTimeEntryModal(false); setEditingEntry(null); }}
+          onSave={editingEntry ? handleSaveEdit : handleSaveTimeEntry}
+          entry={editingEntry || {}}
           users={[user]}
           jobs={[]}
           tasks={[]}
-          mode="add"
+          mode={editingEntry ? 'edit' : 'add'}
           currentUser={user}
         />
       )}
