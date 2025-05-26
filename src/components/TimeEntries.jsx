@@ -77,7 +77,8 @@ function TimeEntries({ user }) {
 
   const handleSaveEdit = async (updatedEntry) => {
     try {
-      const res = await timeTrackerAPI.editTimeEntry(user.id, editingEntry.id, { ...updatedEntry, manual: editingEntry.manual || false })
+      const entryUserId = user.role === 'admin' ? editingEntry.user_id : user.id
+      const res = await timeTrackerAPI.editTimeEntry(entryUserId, editingEntry.id, { ...updatedEntry, manual: editingEntry.manual || false })
       if (res.error) throw res.error
       setShowTimeEntryModal(false)
       setEditingEntry(null)
@@ -208,15 +209,13 @@ function TimeEntries({ user }) {
                       )}
                     </div>
                     <div className="entry-actions">
-                      {user.role !== 'admin' && (
-                        <button
-                          onClick={() => handleEditEntry(entry)}
-                          className="btn btn-secondary btn-sm"
-                          title="Edit entry"
-                        >
-                          <Edit size={14} />
-                        </button>
-                      )}
+                      <button
+                        onClick={() => handleEditEntry(entry)}
+                        className="btn btn-secondary btn-sm"
+                        title="Edit entry"
+                      >
+                        <Edit size={14} />
+                      </button>
                       <button
                         onClick={() => handleDeleteEntry(entry.id)}
                         className="btn btn-danger btn-sm"
