@@ -742,6 +742,11 @@ function Dashboard({ user }) {
                                                           >
                                                             <Trash2 size={14} />
                                                           </button>
+                                                          {entry.manual && (
+                                                            <span className="manual-badge" style={{ color: '#b91c1c', background: '#fee2e2', borderRadius: 6, padding: '2px 8px', fontSize: 12, marginLeft: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                                              <Edit size={14} style={{ marginRight: 2 }} /> Manual
+                                                            </span>
+                                                          )}
                                                         </div>
                                                       </div>
                                                     ))}
@@ -821,7 +826,7 @@ function Dashboard({ user }) {
           <TimeEntryModal
             isOpen={showTimeEntryModal}
             onClose={() => { setShowTimeEntryModal(false); setModalEntry(null); }}
-            onSave={handleSaveTimeEntry}
+            onSave={entryData => handleSaveTimeEntry({ ...entryData, manual: modalEntry?.manual || false })}
             entry={modalEntry}
             users={allUsersData ? Object.values(allUsersData).map(u => u.user) : []}
             jobs={jobOptions.map(j => ({ address: j.value, id: j.value }))}
