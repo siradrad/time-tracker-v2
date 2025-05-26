@@ -714,7 +714,7 @@ function Dashboard({ user }) {
                                                     {biweekEntries
                                                       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                                                       .map((entry) => (
-                                                      <div key={entry.id} className="entry-row">
+                                                      <div key={entry.id} className={`entry-row ${entry.manual ? 'manual-entry' : ''}`}>
                                                         <div className="entry-user">
                                                           <User size={16} />
                                                           <div>
@@ -1197,30 +1197,71 @@ const styles = `
 .entries-table {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0rem;
+  padding: 0.5rem 0;
 }
 
 .entry-row {
   display: grid;
   grid-template-columns: 200px 1fr 1fr auto;
   gap: 1rem;
-  padding: 1rem;
+  padding: 1.25rem;
+  margin-bottom: 0.75rem;
   background: var(--color-surface, #ffffff);
-  border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: var(--border-radius-md, 6px);
+  border: 2px solid var(--color-border, #e5e7eb);
+  border-radius: var(--border-radius-lg, 12px);
   align-items: start;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.entry-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-accent, #3b82f6), var(--color-success, #10b981));
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .entry-row:hover {
-  border-color: var(--color-border-hover, #d1d5db);
-  box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0,0,0,0.05));
+  border-color: var(--color-accent, #3b82f6);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.entry-row:hover::before {
+  opacity: 1;
+}
+
+.entry-row.manual-entry {
+  border-color: var(--color-warning, #f59e0b);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.02), rgba(255, 255, 255, 1));
+}
+
+.entry-row.manual-entry::before {
+  background: linear-gradient(90deg, var(--color-warning, #f59e0b), var(--color-accent, #3b82f6));
+  opacity: 0.7;
+}
+
+.entry-row.manual-entry:hover {
+  border-color: var(--color-warning, #f59e0b);
+  box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.2), 0 2px 4px -1px rgba(245, 158, 11, 0.1);
 }
 
 .entry-user {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  background: var(--color-background-alt, #f9fafb);
+  border-radius: var(--border-radius-md, 8px);
+  border: 1px solid var(--color-border, #e5e7eb);
 }
 
 .entry-user .user-name {
@@ -1237,7 +1278,11 @@ const styles = `
 .entry-details {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(16, 185, 129, 0.05));
+  border-radius: var(--border-radius-md, 8px);
+  border-left: 3px solid var(--color-accent, #3b82f6);
 }
 
 .entry-date {
@@ -1261,7 +1306,11 @@ const styles = `
 .entry-info {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: var(--border-radius-md, 8px);
+  border: 1px solid rgba(229, 231, 235, 0.5);
 }
 
 .entry-address, .entry-task {
@@ -1288,8 +1337,13 @@ const styles = `
 
 .entry-actions {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
-  align-items: flex-start;
+  align-items: stretch;
+  padding: 0.5rem;
+  background: var(--color-background-alt, #f9fafb);
+  border-radius: var(--border-radius-md, 8px);
+  border: 1px solid var(--color-border, #e5e7eb);
 }
 
 .btn-sm {
