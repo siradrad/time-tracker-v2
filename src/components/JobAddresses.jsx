@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { timeTrackerAPI } from '../lib/supabase.js'
+import { timeTrackerAPI } from '../lib/supabase-real.js'
 import { MapPin, Plus, Trash2, Search } from 'lucide-react'
 
 function JobAddresses({ user }) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { timeTrackerAPI } from './lib/supabase.js'
+import { timeTrackerAPI } from './lib/supabase-real.js'
 import Login from './components/Login.jsx'
 import TimeTracker from './components/TimeTracker.jsx'
 import JobAddresses from './components/JobAddresses.jsx'

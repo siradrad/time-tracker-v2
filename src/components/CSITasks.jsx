@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { timeTrackerAPI } from '../lib/supabase.js'
+import { timeTrackerAPI } from '../lib/supabase-real.js'
 import { Briefcase, Plus, Edit, Trash2, BarChart3, Users, Clock } from 'lucide-react'
 
 function CSITasks({ user }) {

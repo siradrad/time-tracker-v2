@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { timeTrackerAPI } from '../lib/supabase.js'
+import { timeTrackerAPI } from '../lib/supabase-real.js'
 import { UserPlus, User, Lock, Mail, Shield, X } from 'lucide-react'
 
 function AddUser({ onUserAdded, onClose }) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { timeTrackerAPI } from '../lib/supabase.js'
+import { timeTrackerAPI } from '../lib/supabase-real.js'
 import { Play, Pause, Square, Clock, MapPin, Briefcase, FileText, Save, Car, Coffee } from 'lucide-react'
 
 function TimeTracker({ user }) {
