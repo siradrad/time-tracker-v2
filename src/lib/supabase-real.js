@@ -780,6 +780,16 @@ class SupabaseDBManager {
 
   async getAvailableCSITasks() {
     try {
+      // Check if we have cached task names first (faster than full getCSITasks)
+      const now = Date.now()
+      if (this._cache.csiTasks &&
+          this._cache.csiTasksTimestamp &&
+          (now - this._cache.csiTasksTimestamp) < this._cache.cacheTimeout) {
+        const taskNames = this._cache.csiTasks.map(task => task.name)
+        console.log(`📋 Retrieved ${taskNames.length} task names from cache (fast path)`)
+        return { data: taskNames, error: null }
+      }
+
       // Use cached CSI tasks if available
       const cachedResult = await this.getCSITasks()
       if (cachedResult.data) {
@@ -789,6 +799,7 @@ class SupabaseDBManager {
       }
 
       // Fallback to direct query if cache fails
+      console.log('⚠️ Cache miss for CSI tasks, falling back to direct query')
       const { data, error } = await supabase
         .from(TABLES.CSI_TASKS)
         .select('name')

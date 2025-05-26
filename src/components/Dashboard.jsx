@@ -49,6 +49,7 @@ function Dashboard({ user }) {
   const [modalEntry, setModalEntry] = useState(null)
   const [allJobs, setAllJobs] = useState([])
   const [allTasks, setAllTasks] = useState([])
+  const [dropdownLoading, setDropdownLoading] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -59,18 +60,33 @@ function Dashboard({ user }) {
       }
     }
     
-    // Fetch all jobs and tasks for dropdowns
+    // Fetch dropdown data only for admin users and only once
     async function fetchDropdownData() {
-      if (!isMounted) return
+      if (!isMounted || user.role !== 'admin') return
+      
       try {
-        const jobsRes = await timeTrackerAPI.getAllJobAddresses()
-        if (isMounted) setAllJobs(jobsRes.data || [])
+        setDropdownLoading(true)
+        console.log('🔄 Fetching dropdown data for admin...')
+        const startTime = Date.now()
         
-        const tasksRes = await timeTrackerAPI.getAvailableCSITasks()
-        if (isMounted) setAllTasks(tasksRes.data || [])
+        // Fetch jobs and tasks in parallel for better performance
+        const [jobsRes, tasksRes] = await Promise.all([
+          timeTrackerAPI.getAllJobAddresses(),
+          timeTrackerAPI.getAvailableCSITasks()
+        ])
+        
+        if (isMounted) {
+          setAllJobs(jobsRes.data || [])
+          setAllTasks(tasksRes.data || [])
+          
+          const loadTime = Date.now() - startTime
+          console.log(`✅ Dropdown data loaded in ${loadTime}ms: ${jobsRes.data?.length || 0} jobs, ${tasksRes.data?.length || 0} tasks`)
+        }
       } catch (error) {
         console.error('Error fetching dropdown data:', error)
         if (isMounted) setError('Failed to load dropdown data: ' + error.message)
+      } finally {
+        if (isMounted) setDropdownLoading(false)
       }
     }
     
@@ -80,41 +96,48 @@ function Dashboard({ user }) {
     return () => {
       isMounted = false
     }
-  }, [user.id])
+  }, [user.id, user.role])
 
   useEffect(() => {
     // Only process options when we have time entries and user is admin
-    // Add length check to prevent unnecessary re-processing
+    // Use a more efficient check to prevent unnecessary re-processing
     if (user.role === 'admin' && allTimeEntries.length > 0) {
-      console.log(`🔄 Processing ${allTimeEntries.length} entries for dropdown options...`)
+      // Only process if we don't have options yet or if the data has significantly changed
+      const shouldProcess = jobOptions.length === 0 || taskOptions.length === 0 || workerOptions.length === 0
       
-      // Jobs: aggregate from all time entries, but filter out break/travel types
-      const EXCLUDE_JOBS = [
-        'Break/Lunch', 'Break/Lunch Time', 'Travel', 'Travel Time'
-      ]
-      const allJobs = Array.from(new Set(
-        allTimeEntries
-          .map(e => e.job_address)
-          .filter(addr => addr && !EXCLUDE_JOBS.includes(addr))
-      ))
-      setJobOptions(allJobs.map(addr => ({ value: addr, label: addr })))
-      
-      // Tasks: aggregate from all time entries
-      const allTasks = Array.from(new Set(allTimeEntries.map(e => e.csi_division).filter(Boolean)))
-      setTaskOptions(allTasks.map(task => ({ value: task, label: task })))
-      
-      // Workers: aggregate from all time entries
-      const workerMap = {}
-      allTimeEntries.forEach(e => {
-        if (e.user_id && e.user_name) {
-          workerMap[e.user_id] = e.user_name
-        }
-      })
-      setWorkerOptions(Object.entries(workerMap).map(([id, name]) => ({ value: id, label: name })))
-      
-      console.log(`✅ Processed options: ${allJobs.length} jobs, ${allTasks.length} tasks, ${Object.keys(workerMap).length} workers`)
+      if (shouldProcess) {
+        console.log(`🔄 Processing ${allTimeEntries.length} entries for dropdown options...`)
+        const startTime = Date.now()
+        
+        // Jobs: aggregate from all time entries, but filter out break/travel types
+        const EXCLUDE_JOBS = [
+          'Break/Lunch', 'Break/Lunch Time', 'Travel', 'Travel Time'
+        ]
+        const uniqueJobs = Array.from(new Set(
+          allTimeEntries
+            .map(e => e.job_address)
+            .filter(addr => addr && !EXCLUDE_JOBS.includes(addr))
+        ))
+        setJobOptions(uniqueJobs.map(addr => ({ value: addr, label: addr })))
+        
+        // Tasks: aggregate from all time entries
+        const uniqueTasks = Array.from(new Set(allTimeEntries.map(e => e.csi_division).filter(Boolean)))
+        setTaskOptions(uniqueTasks.map(task => ({ value: task, label: task })))
+        
+        // Workers: aggregate from all time entries
+        const workerMap = {}
+        allTimeEntries.forEach(e => {
+          if (e.user_id && e.user_name) {
+            workerMap[e.user_id] = e.user_name
+          }
+        })
+        setWorkerOptions(Object.entries(workerMap).map(([id, name]) => ({ value: id, label: name })))
+        
+        const processTime = Date.now() - startTime
+        console.log(`✅ Processed options in ${processTime}ms: ${uniqueJobs.length} jobs, ${uniqueTasks.length} tasks, ${Object.keys(workerMap).length} workers`)
+      }
     }
-  }, [user.role, allTimeEntries.length]) // Use length instead of full array to prevent unnecessary re-renders
+  }, [user.role, allTimeEntries.length, jobOptions.length, taskOptions.length, workerOptions.length])
 
   const loadDashboardData = async () => {
     try {
