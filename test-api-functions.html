@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Function Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Time Tracker API Function Test</h1>
+    <div id="results"></div>
+    
+    <button onclick="testGetAllJobAddresses()">Test getAllJobAddresses</button>
+    <button onclick="testGetAvailableCSITasks()">Test getAvailableCSITasks</button>
+    <button onclick="testAllFunctions()">Test All Functions</button>
+    <button onclick="clearResults()">Clear Results</button>
+
+    <script type="module">
+        import { timeTrackerAPI } from './src/lib/supabase-real.js';
+        
+        window.timeTrackerAPI = timeTrackerAPI;
+        
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+        
+        window.addResult = addResult;
+        
+        // Test getAllJobAddresses function
+        window.testGetAllJobAddresses = async function() {
+            addResult('Testing getAllJobAddresses...', 'info');
+            try {
+                console.log('timeTrackerAPI object:', timeTrackerAPI);
+                console.log('getAllJobAddresses function:', timeTrackerAPI.getAllJobAddresses);
+                console.log('typeof getAllJobAddresses:', typeof timeTrackerAPI.getAllJobAddresses);
+                
+                if (typeof timeTrackerAPI.getAllJobAddresses !== 'function') {
+                    addResult('❌ getAllJobAddresses is not a function!', 'error');
+                    addResult('Available functions: ' + Object.keys(timeTrackerAPI).join(', '), 'info');
+                    return;
+                }
+                
+                const result = await timeTrackerAPI.getAllJobAddresses();
+                addResult('✅ getAllJobAddresses succeeded', 'success');
+                addResult('<pre>' + JSON.stringify(result, null, 2) + '</pre>', 'info');
+            } catch (error) {
+                addResult('❌ getAllJobAddresses failed: ' + error.message, 'error');
+                console.error('Error:', error);
+            }
+        };
+        
+        // Test getAvailableCSITasks function
+        window.testGetAvailableCSITasks = async function() {
+            addResult('Testing getAvailableCSITasks...', 'info');
+            try {
+                const result = await timeTrackerAPI.getAvailableCSITasks();
+                addResult('✅ getAvailableCSITasks succeeded', 'success');
+                addResult('<pre>' + JSON.stringify(result, null, 2) + '</pre>', 'info');
+            } catch (error) {
+                addResult('❌ getAvailableCSITasks failed: ' + error.message, 'error');
+                console.error('Error:', error);
+            }
+        };
+        
+        // Test all functions
+        window.testAllFunctions = async function() {
+            addResult('=== Testing All API Functions ===', 'info');
+            await testGetAllJobAddresses();
+            await testGetAvailableCSITasks();
+            addResult('=== Test Complete ===', 'info');
+        };
+        
+        window.clearResults = function() {
+            document.getElementById('results').innerHTML = '';
+        };
+        
+        // Auto-run basic test on load
+        addResult('API Test Page Loaded', 'success');
+        addResult('timeTrackerAPI available: ' + (typeof timeTrackerAPI !== 'undefined'), 'info');
+        if (typeof timeTrackerAPI !== 'undefined') {
+            addResult('Available functions: ' + Object.keys(timeTrackerAPI).join(', '), 'info');
+        }
+    </script>
+</body>
+</html> 

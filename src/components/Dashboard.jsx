@@ -50,24 +50,10 @@ function Dashboard({ user }) {
     // Fetch all jobs and tasks for dropdowns
     async function fetchDropdownData() {
       try {
-        console.log('Fetching dropdown data...')
-        console.log('timeTrackerAPI:', timeTrackerAPI)
-        console.log('getAllJobAddresses function:', timeTrackerAPI.getAllJobAddresses)
-        console.log('typeof getAllJobAddresses:', typeof timeTrackerAPI.getAllJobAddresses)
-        
-        if (typeof timeTrackerAPI.getAllJobAddresses !== 'function') {
-          console.error('getAllJobAddresses is not a function!')
-          console.log('Available functions:', Object.keys(timeTrackerAPI))
-          setError('getAllJobAddresses function not found')
-          return
-        }
-        
         const jobsRes = await timeTrackerAPI.getAllJobAddresses()
-        console.log('Jobs response:', jobsRes)
         setAllJobs(jobsRes.data || [])
         
         const tasksRes = await timeTrackerAPI.getAvailableCSITasks()
-        console.log('Tasks response:', tasksRes)
         setAllTasks(tasksRes.data || [])
       } catch (error) {
         console.error('Error fetching dropdown data:', error)
