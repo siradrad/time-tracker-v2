@@ -1,17 +1,17 @@
-/* Enhanced Report Page Styles - Monochrome */
+/* Enhanced Report Page Styles - Light Monochrome */
 .report-page {
   min-height: 100vh;
-  background: #ffffff;
+  background: #f8f9fa;
   padding: 24px;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   line-height: 1.6;
-  color: #000000;
+  color: #212529;
 }
 
 /* Enhanced Header */
 .report-header {
   background: #ffffff;
-  border: 2px solid #000000;
+  border: 1px solid #dee2e6;
   margin-bottom: 32px;
   max-width: 1400px;
   margin-left: auto;
@@ -21,6 +21,7 @@
 
 .report-header:hover {
   transform: translateY(-2px);
+  border-color: #6c757d;
 }
 
 .header-content {
@@ -38,31 +39,31 @@
 }
 
 .header-icon {
-  color: #000000;
-  background: #f5f5f5;
+  color: #495057;
+  background: #f8f9fa;
   padding: 12px;
-  border: 2px solid #000000;
+  border: 1px solid #dee2e6;
 }
 
 .header-title h1 {
   margin: 0;
   font-size: 32px;
   font-weight: 800;
-  color: #000000;
+  color: #212529;
   letter-spacing: -0.02em;
 }
 
 .header-subtitle {
   margin: 4px 0 0 0;
-  color: #666666;
+  color: #6c757d;
   font-size: 16px;
   font-weight: 500;
 }
 
 /* Enhanced Download Button */
 .download-btn {
-  background: #000000;
-  border: 2px solid #000000;
+  background: #495057;
+  border: 1px solid #495057;
   padding: 16px 24px;
   color: #ffffff;
   font-weight: 600;
@@ -90,7 +91,8 @@
 
 .download-btn:hover {
   transform: translateY(-3px);
-  background: #333333;
+  background: #343a40;
+  border-color: #343a40;
 }
 
 .download-btn:hover::before {
@@ -99,23 +101,23 @@
 
 .download-btn:active {
   transform: translateY(-1px);
-  background: #000000;
+  background: #495057;
 }
 
 /* Secondary Button */
 .btn-secondary {
-  background: #f5f5f5;
-  border: 2px solid #666666;
+  background: #ffffff;
+  border: 1px solid #dee2e6;
   padding: 12px 24px;
-  color: #333333;
+  color: #495057;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .btn-secondary:hover {
-  background: #e5e5e5;
-  border-color: #000000;
+  background: #f8f9fa;
+  border-color: #6c757d;
   transform: translateY(-1px);
 }
 
@@ -142,7 +144,7 @@
 }
 
 .date-header {
-  background: #000000;
+  background: #495057;
   color: #ffffff;
   padding: 24px 32px;
   display: flex;
@@ -189,14 +191,14 @@
 }
 
 .date-total {
-  background: #333333;
+  background: #343a40;
   padding: 12px 20px;
   font-weight: 700;
   font-size: 20px;
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 2px solid #ffffff;
+  border: 1px solid #ffffff;
 }
 
 /* Enhanced Workers Grid */
@@ -206,33 +208,33 @@
   gap: 24px;
   padding: 24px;
   background: #ffffff;
-  border: 2px solid #000000;
+  border: 1px solid #dee2e6;
   border-top: none;
 }
 
 /* Enhanced Worker Cards */
 .worker-card {
   background: #ffffff;
-  border: 2px solid #000000;
+  border: 1px solid #dee2e6;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .worker-card:hover {
-  border-color: #333333;
+  border-color: #6c757d;
   transform: translateY(-4px);
 }
 
 .worker-header {
-  background: #f5f5f5;
-  color: #000000;
+  background: #f8f9fa;
+  color: #212529;
   padding: 20px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   position: relative;
   overflow: hidden;
-  border-bottom: 2px solid #000000;
+  border-bottom: 1px solid #dee2e6;
 }
 
 .worker-header::before {
@@ -242,7 +244,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(0, 0, 0, 0.02);
   transform: translateX(-100%);
   transition: transform 0.6s;
 }
@@ -265,7 +267,7 @@
 }
 
 .worker-total {
-  background: #000000;
+  background: #495057;
   color: #ffffff;
   padding: 8px 16px;
   font-weight: 700;
@@ -273,7 +275,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  border: 2px solid #000000;
+  border: 1px solid #495057;
 }
 
 /* Enhanced Jobs List */
@@ -282,9 +284,9 @@
 }
 
 .job-section {
-  background: #f9f9f9;
+  background: #f8f9fa;
   margin-bottom: 16px;
-  border: 1px solid #cccccc;
+  border: 1px solid #e9ecef;
   overflow: hidden;
   transition: all 0.3s ease;
 }
@@ -295,14 +297,14 @@
 
 .job-section:hover {
   background: #ffffff;
-  border-color: #000000;
+  border-color: #dee2e6;
   transform: translateY(-1px);
 }
 
 .job-header {
-  background: #e5e5e5;
+  background: #e9ecef;
   padding: 16px 20px;
-  border-bottom: 1px solid #cccccc;
+  border-bottom: 1px solid #dee2e6;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -318,7 +320,7 @@
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #000000;
+  color: #212529;
   letter-spacing: -0.01em;
 }
 
@@ -329,7 +331,7 @@
 }
 
 .job-total {
-  background: #000000;
+  background: #495057;
   color: #ffffff;
   padding: 6px 12px;
   font-weight: 600;
@@ -340,15 +342,15 @@
 }
 
 .task-count {
-  background: #f5f5f5;
-  color: #333333;
+  background: #ffffff;
+  color: #495057;
   padding: 6px 12px;
   font-size: 14px;
   font-weight: 600;
   display: flex;
   align-items: center;
   gap: 4px;
-  border: 1px solid #cccccc;
+  border: 1px solid #dee2e6;
 }
 
 /* Enhanced Tasks List */
@@ -361,7 +363,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 12px 0;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid #e9ecef;
   transition: all 0.3s ease;
 }
 
@@ -370,7 +372,7 @@
 }
 
 .task-item:hover {
-  background: #f9f9f9;
+  background: #f8f9fa;
   padding: 12px;
   margin: 0 -12px;
 }
@@ -383,7 +385,7 @@
 
 .task-name {
   font-weight: 600;
-  color: #000000;
+  color: #212529;
   font-size: 15px;
 }
 
@@ -396,14 +398,14 @@
 .task-bar {
   flex: 1;
   height: 8px;
-  background: #e5e5e5;
+  background: #e9ecef;
   overflow: hidden;
   position: relative;
 }
 
 .task-progress {
   height: 100%;
-  background: #000000;
+  background: #495057;
   transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -436,13 +438,13 @@
 
 .task-hours {
   font-weight: 700;
-  color: #000000;
+  color: #212529;
   font-size: 14px;
 }
 
 .task-percentage {
   font-weight: 600;
-  color: #666666;
+  color: #6c757d;
   font-size: 13px;
   min-width: 40px;
   text-align: right;
@@ -451,7 +453,7 @@
 /* Enhanced Table Styles */
 .table-container {
   background: #ffffff;
-  border: 2px solid #000000;
+  border: 1px solid #dee2e6;
   overflow: hidden;
 }
 
@@ -467,12 +469,12 @@
 }
 
 .report-table th {
-  background: #f5f5f5;
+  background: #f8f9fa;
   padding: 20px 24px;
   text-align: left;
   font-weight: 700;
-  color: #000000;
-  border-bottom: 2px solid #000000;
+  color: #212529;
+  border-bottom: 2px solid #dee2e6;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -486,18 +488,18 @@
 
 .report-table td {
   padding: 16px 24px;
-  border-bottom: 1px solid #e5e5e5;
-  color: #000000;
+  border-bottom: 1px solid #e9ecef;
+  color: #212529;
   font-weight: 500;
   transition: all 0.3s ease;
 }
 
 .report-table tr:hover {
-  background: #f9f9f9;
+  background: #f8f9fa;
 }
 
 .report-table tr:hover td {
-  color: #000000;
+  color: #212529;
 }
 
 /* Enhanced Loading and Error States */
@@ -506,20 +508,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
+  background: #f8f9fa;
   padding: 24px;
 }
 
 .loading-container, .error-container {
   text-align: center;
   background: #ffffff;
-  border: 2px solid #000000;
+  border: 1px solid #dee2e6;
   padding: 48px;
   max-width: 400px;
 }
 
 .loading-container .spinner {
-  color: #000000;
+  color: #495057;
   animation: spin 1s linear infinite;
   margin-bottom: 24px;
 }
@@ -533,17 +535,17 @@
   margin: 0 0 12px 0;
   font-size: 24px;
   font-weight: 700;
-  color: #000000;
+  color: #212529;
 }
 
 .loading-container p, .error-container p {
   margin: 0 0 24px 0;
-  color: #666666;
+  color: #6c757d;
   font-size: 16px;
 }
 
 .error-icon {
-  color: #000000;
+  color: #495057;
   margin-bottom: 24px;
 }
 
@@ -619,11 +621,11 @@
   }
 }
 
-/* Dark mode support - Monochrome */
+/* Dark mode support - Light Monochrome */
 @media (prefers-color-scheme: dark) {
   .report-page {
-    background: #000000;
-    color: #ffffff;
+    background: #212529;
+    color: #f8f9fa;
   }
   
   .report-header,
@@ -631,54 +633,54 @@
   .table-container,
   .loading-container,
   .error-container {
-    background: #000000;
-    border-color: #ffffff;
+    background: #343a40;
+    border-color: #495057;
   }
   
   .worker-card,
   .job-section {
-    background: #000000;
-    border-color: #ffffff;
+    background: #343a40;
+    border-color: #495057;
   }
   
   .job-header {
-    background: #333333;
+    background: #495057;
   }
   
   .report-table th {
-    background: #333333;
-    color: #ffffff;
+    background: #495057;
+    color: #f8f9fa;
   }
   
   .report-table td {
-    color: #ffffff;
+    color: #f8f9fa;
   }
   
   .task-bar {
-    background: #333333;
+    background: #495057;
   }
   
   .task-progress {
-    background: #ffffff;
+    background: #f8f9fa;
   }
   
   .header-icon {
-    background: #333333;
-    color: #ffffff;
+    background: #495057;
+    color: #f8f9fa;
   }
   
   .worker-header {
-    background: #333333;
-    color: #ffffff;
+    background: #495057;
+    color: #f8f9fa;
   }
   
   .download-btn {
-    background: #ffffff;
-    color: #000000;
-    border-color: #ffffff;
+    background: #f8f9fa;
+    color: #212529;
+    border-color: #f8f9fa;
   }
   
   .download-btn:hover {
-    background: #cccccc;
+    background: #e9ecef;
   }
 } 
