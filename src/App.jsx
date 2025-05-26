@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { timeTrackerAPI } from './lib/supabase-real.js'
 import Login from './components/Login.jsx'
 import TimeTracker from './components/TimeTracker.jsx'
@@ -6,6 +7,7 @@ import JobAddresses from './components/JobAddresses.jsx'
 import TimeEntries from './components/TimeEntries.jsx'
 import Dashboard from './components/Dashboard.jsx'
 import CSITasks from './components/CSITasks.jsx'
+import ReportPage from './components/ReportPage.jsx'
 import { Clock, MapPin, List, BarChart3, LogOut, Settings, Briefcase } from 'lucide-react'
 import './App.css'
 
@@ -13,6 +15,10 @@ function App() {
   const [user, setUser] = useState(null)
   const [currentView, setCurrentView] = useState('timer')
   const [loading, setLoading] = useState(true)
+  const location = useLocation()
+
+  // Check if this is a report page
+  const isReportPage = location.pathname === '/report'
 
   useEffect(() => {
     checkUser()
@@ -61,6 +67,15 @@ function App() {
         console.error('Error clearing data:', error)
       }
     }
+  }
+
+  // If this is a report page, render it directly without authentication
+  if (isReportPage) {
+    return (
+      <Routes>
+        <Route path="/report" element={<ReportPage />} />
+      </Routes>
+    )
   }
 
   if (loading) {
@@ -120,63 +135,68 @@ function App() {
   }
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <div className="header-content">
-          <div className="header-left">
-            <h1 className="app-title">
-              <Clock className="title-icon" />
-              Time Tracker V2
-            </h1>
-            <span className="user-info">Welcome, {user.name}!</span>
-          </div>
-          <div className="header-right">
-            {user.role === 'admin' && (
-              <button 
-                onClick={clearAllData}
-                className="btn btn-outline"
-                title="Clear all data (Admin only)"
-              >
-                <Settings size={16} />
-                Clear Data
-              </button>
-            )}
-            <button onClick={handleSignOut} className="btn btn-outline">
-              <LogOut size={16} />
-              Sign Out
-            </button>
+    <Routes>
+      <Route path="/report" element={<ReportPage />} />
+      <Route path="/*" element={
+        <div className="app">
+          <header className="app-header">
+            <div className="header-content">
+              <div className="header-left">
+                <h1 className="app-title">
+                  <Clock className="title-icon" />
+                  Time Tracker V2
+                </h1>
+                <span className="user-info">Welcome, {user.name}!</span>
+              </div>
+              <div className="header-right">
+                {user.role === 'admin' && (
+                  <button 
+                    onClick={clearAllData}
+                    className="btn btn-outline"
+                    title="Clear all data (Admin only)"
+                  >
+                    <Settings size={16} />
+                    Clear Data
+                  </button>
+                )}
+                <button onClick={handleSignOut} className="btn btn-outline">
+                  <LogOut size={16} />
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </header>
+
+          <div className="app-body">
+            <nav className="sidebar">
+              <ul className="nav-list">
+                {navigationItems.map((item) => {
+                  const Icon = item.icon
+                  return (
+                    <li key={item.id}>
+                      <button
+                        onClick={() => {
+                          console.log('Nav button clicked:', item.id);
+                          setCurrentView(item.id)
+                        }}
+                        className={`nav-button ${currentView === item.id ? 'active' : ''}`}
+                      >
+                        <Icon size={20} />
+                        <span>{item.label}</span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </nav>
+
+            <main className="main-content">
+              {renderCurrentView()}
+            </main>
           </div>
         </div>
-      </header>
-
-      <div className="app-body">
-        <nav className="sidebar">
-          <ul className="nav-list">
-            {navigationItems.map((item) => {
-              const Icon = item.icon
-              return (
-                <li key={item.id}>
-                  <button
-                    onClick={() => {
-                      console.log('Nav button clicked:', item.id);
-                      setCurrentView(item.id)
-                    }}
-                    className={`nav-button ${currentView === item.id ? 'active' : ''}`}
-                  >
-                    <Icon size={20} />
-                    <span>{item.label}</span>
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-        </nav>
-
-        <main className="main-content">
-          {renderCurrentView()}
-        </main>
-      </div>
-    </div>
+      } />
+    </Routes>
   )
 }
 

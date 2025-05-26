@@ -32,6 +32,7 @@ function Dashboard({ user }) {
   const [reportTask, setReportTask] = useState('')
   const [reportWorker, setReportWorker] = useState('')
   const [reportResults, setReportResults] = useState([])
+  const [reportHeaders, setReportHeaders] = useState([])
   const [reportLoading, setReportLoading] = useState(false)
   const [jobOptions, setJobOptions] = useState([])
   const [taskOptions, setTaskOptions] = useState([])
@@ -39,6 +40,10 @@ function Dashboard({ user }) {
   const [selectedJobs, setSelectedJobs] = useState([])
   const [selectedTasks, setSelectedTasks] = useState([])
   const [selectedWorkers, setSelectedWorkers] = useState([])
+  const [selectAllJobs, setSelectAllJobs] = useState(false)
+  const [selectAllTasks, setSelectAllTasks] = useState(false)
+  const [selectAllWorkers, setSelectAllWorkers] = useState(false)
+  const [reportStyle, setReportStyle] = useState('cards') // 'table' or 'cards'
   const [showTimeEntryModal, setShowTimeEntryModal] = useState(false)
   const [modalMode, setModalMode] = useState('add') // 'add' or 'edit'
   const [modalEntry, setModalEntry] = useState(null)
@@ -81,7 +86,9 @@ function Dashboard({ user }) {
       // Workers: aggregate from all time entries
       const workerMap = {}
       allTimeEntries.forEach(e => {
-        if (e.user_id && e.user_name) workerMap[e.user_id] = e.user_name
+        if (e.user_id && e.user_name) {
+          workerMap[e.user_id] = e.user_name
+        }
       })
       setWorkerOptions(Object.entries(workerMap).map(([id, name]) => ({ value: id, label: name })))
     }
@@ -241,44 +248,46 @@ function Dashboard({ user }) {
   const handleRunReport = () => {
     setReportLoading(true)
     setTimeout(() => {
+      try {
       let filtered = allTimeEntries
+      
       if (reportStartDate) filtered = filtered.filter(e => new Date(e.date) >= new Date(reportStartDate))
       if (reportEndDate) filtered = filtered.filter(e => new Date(e.date) <= new Date(reportEndDate))
       if (selectedJobs.length > 0) filtered = filtered.filter(e => selectedJobs.includes(e.job_address))
       if (selectedTasks.length > 0) filtered = filtered.filter(e => selectedTasks.includes(e.csi_division))
-      if (selectedWorkers.length > 0) filtered = filtered.filter(e => selectedWorkers.includes(e.user_id))
+      if (selectedWorkers.length > 0) {
+        filtered = filtered.filter(e => selectedWorkers.includes(e.user_id))
+      }
 
-      // Determine for each filter if all are selected
-      const allJobsSelected = selectedJobs.length === jobOptions.length
-      const allTasksSelected = selectedTasks.length === taskOptions.length
-      const allWorkersSelected = selectedWorkers.length === workerOptions.length
-
-      // Build grouping key based on partial filters
+      // Use explicit "Select All" flags to determine aggregation
+      // Only aggregate if "Select All" was explicitly clicked
+      
+      // Build grouping key based on explicit "Select All" selections
       const groupBy = []
-      if (!allJobsSelected) groupBy.push('job_address')
-      if (!allTasksSelected) groupBy.push('csi_division')
-      if (!allWorkersSelected) groupBy.push('user_id')
+      if (!selectAllJobs) groupBy.push('job_address')
+      if (!selectAllTasks) groupBy.push('csi_division')
+      if (!selectAllWorkers) groupBy.push('user_id')
       groupBy.push('date') // Always group by date for clarity
 
-      let results = []
-      let headers = ['Date']
-      if (!allJobsSelected) headers.push('Job')
-      if (!allTasksSelected) headers.push('Task')
-      if (!allWorkersSelected) headers.push('Worker')
-      headers.push('Hours')
+              let results = []
+        let headers = ['Date']
+        if (!selectAllJobs) headers.push('Job')
+        if (!selectAllTasks) headers.push('Task')
+        if (!selectAllWorkers) headers.push('Worker')
+        headers.push('Hours')
 
       if (groupBy.length === 1 && groupBy[0] === 'date') {
         // All filters are 'all', aggregate everything
         const totalHours = filtered.reduce((sum, e) => sum + (e.duration / 3600), 0)
-        results = [{ date: 'All', hours: totalHours.toFixed(2) }]
+        results = [{ id: 1, date: 'All', hours: totalHours.toFixed(2) }]
       } else if (groupBy.length === 4) {
         // All are partial, show detailed (one row per entry)
         results = filtered.map((e, i) => ({
           id: e.id || i,
-          date: e.date,
-          job: e.job_address,
-          task: e.csi_division,
-          worker: e.user_name,
+          date: e.date || new Date(e.created_at).toISOString().split('T')[0],
+          job: e.job_address || 'N/A',
+          task: e.csi_division || 'N/A',
+          worker: e.user_name || 'Unknown',
           hours: (e.duration / 3600).toFixed(2)
         }))
       } else {
@@ -286,16 +295,16 @@ function Dashboard({ user }) {
         const groupMap = {}
         filtered.forEach(e => {
           const keyParts = []
-          if (!allJobsSelected) keyParts.push(e.job_address)
-          if (!allTasksSelected) keyParts.push(e.csi_division)
-          if (!allWorkersSelected) keyParts.push(e.user_name)
-          keyParts.push(e.date)
+          if (!selectAllJobs) keyParts.push(e.job_address || 'N/A')
+          if (!selectAllTasks) keyParts.push(e.csi_division || 'N/A')
+          if (!selectAllWorkers) keyParts.push(e.user_name || 'Unknown')
+          keyParts.push(e.date || new Date(e.created_at).toISOString().split('T')[0])
           const key = keyParts.join('|')
           if (!groupMap[key]) {
-            const row = { date: e.date }
-            if (!allJobsSelected) row.job = e.job_address
-            if (!allTasksSelected) row.task = e.csi_division
-            if (!allWorkersSelected) row.worker = e.user_name
+            const row = { date: e.date || new Date(e.created_at).toISOString().split('T')[0] }
+            if (!selectAllJobs) row.job = e.job_address || 'N/A'
+            if (!selectAllTasks) row.task = e.csi_division || 'N/A'
+            if (!selectAllWorkers) row.worker = e.user_name || 'Unknown'
             row.hours = 0
             groupMap[key] = row
           }
@@ -303,72 +312,68 @@ function Dashboard({ user }) {
         })
         results = Object.values(groupMap).map((row, i) => ({ ...row, id: i, hours: row.hours.toFixed(2) }))
       }
-      setReportResults(results)
-      setReportLoading(false)
-      openReportWindow(results, headers)
+        setReportResults(results)
+        setReportHeaders(headers) // Update state variable
+        setReportLoading(false)
+        
+        if (reportStyle === 'cards') {
+          openCardReportTab(filtered, { selectAllJobs, selectAllTasks, selectAllWorkers })
+        } else {
+          openTableReportTab(results, headers)
+        }
+      } catch (error) {
+        console.error('Report generation error:', error)
+        setReportLoading(false)
+        alert('Error generating report: ' + error.message)
+      }
     }, 500)
   }
 
-  const openReportWindow = (data, headers) => {
-    const win = window.open('', '_blank', 'width=900,height=700')
-    if (!win) return
-    const csvRows = [
-      headers,
-      ...data.map(row => headers.map(header => row[header]))
-    ]
-    const csvContent = csvRows.map(e => e.join(",")).join("\n")
-    const downloadScript = `
-      function downloadCSV() {
-        const csv = \`${csvContent}\`;
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'report.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }
-    `
-    win.document.write(`
-      <html>
-      <head>
-        <title>Report</title>
-        <style>
-          body { font-family: 'Inter', sans-serif; background: #f8fafc; margin: 0; padding: 0; }
-          .report-container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-          .card-modern { background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); width: 100%; margin: 2rem auto; padding: 2rem; }
-          .sticky-header th { position: sticky; top: 0; background: #f1f5f9; z-index: 2; }
-          table { width: 100%; border-collapse: collapse; margin-top: 2rem; font-size: 1.05rem; }
-          th, td { padding: 1rem; border-bottom: 1px solid #e5e7eb; text-align: left; }
-          th { background: #f1f5f9; font-size: 1.1rem; }
-          tr:last-child td { border-bottom: none; }
-          @media (max-width: 900px) { .report-container, .card-modern { padding: 1rem; } th, td { padding: 0.5rem; } }
-        </style>
-      </head>
-      <body>
-        <div class="report-container">
-          <div class="card-modern">
-            <h2 style="margin-top:0;">Report Results</h2>
-            <button class="btn-enhanced" onclick="downloadCSV()">Download CSV</button>
-            <table>
-              <thead class="sticky-header">
-                <tr>
-                  ${headers.map(header => `<th>${header}</th>`).join('')}
-                </tr>
-              </thead>
-              <tbody>
-                ${data.map(row => `<tr>${headers.map(header => `<td>${row[header]}</td>`).join('')}</tr>`).join('')}
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <script>${downloadScript}</script>
-      </body>
-      </html>
-    `)
-    win.document.close()
+  const openTableReportTab = (data, headers) => {
+    const reportData = {
+      results: data,
+      headers: headers,
+      style: 'table'
+    }
+    
+    // Store data in sessionStorage instead of URL parameters
+    const reportId = 'report_' + Date.now()
+    sessionStorage.setItem(reportId, JSON.stringify(reportData))
+    
+    const url = `/report?id=${reportId}`
+    window.open(url, '_blank')
+  }
+
+  const openCardReportTab = (filteredData, groupingFlags) => {
+    // Group data by Date → Worker → Job → Tasks
+    const groupedData = {}
+    
+    filteredData.forEach(entry => {
+      const date = entry.date || new Date(entry.created_at).toISOString().split('T')[0]
+      const worker = entry.user_name || 'Unknown'
+      const job = entry.job_address || 'N/A'
+      const task = entry.csi_division || 'N/A'
+      const hours = entry.duration / 3600
+
+      if (!groupedData[date]) groupedData[date] = {}
+      if (!groupedData[date][worker]) groupedData[date][worker] = {}
+      if (!groupedData[date][worker][job]) groupedData[date][worker][job] = {}
+      if (!groupedData[date][worker][job][task]) groupedData[date][worker][job][task] = 0
+      
+      groupedData[date][worker][job][task] += hours
+    })
+
+    const reportData = {
+      groupedData: groupedData,
+      style: 'cards'
+    }
+    
+    // Store data in sessionStorage instead of URL parameters
+    const reportId = 'report_' + Date.now()
+    sessionStorage.setItem(reportId, JSON.stringify(reportData))
+    
+    const url = `/report?id=${reportId}`
+    window.open(url, '_blank')
   }
 
   if (loading) {
@@ -471,6 +476,18 @@ function Dashboard({ user }) {
                 <div style={{ marginBottom: 16, color: '#64748b', fontSize: 15, fontStyle: 'italic' }}>
                   Only jobs, tasks, and workers with at least one time record are available for selection.
                 </div>
+                <div style={{ marginBottom: 24 }}>
+                  <label style={{ fontWeight: 600, fontSize: 16, marginBottom: 8, display: 'block' }}>Report Style</label>
+                  <select 
+                    className="form-input-enhanced" 
+                    value={reportStyle} 
+                    onChange={e => setReportStyle(e.target.value)}
+                    style={{ width: 200 }}
+                  >
+                    <option value="cards">📋 Cards (Grouped)</option>
+                    <option value="table">📊 Table (Flat)</option>
+                  </select>
+                </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32, marginBottom: 32 }}>
                   <div>
                     <label style={{ fontWeight: 600, fontSize: 16 }}>Date Start</label><br />
@@ -486,11 +503,21 @@ function Dashboard({ user }) {
                         <div style={{ fontWeight: 700, marginBottom: 4 }}>Job</div>
                         <div className="multi-select-group scroll-box">
                           <label style={{ fontWeight: 500 }}>
-                            <input type="checkbox" checked={selectedJobs.length === jobOptions.length} onChange={e => setSelectedJobs(e.target.checked ? jobOptions.map(o => o.value) : [])} /> Select All
+                            <input type="checkbox" checked={selectAllJobs} onChange={e => {
+                              setSelectAllJobs(e.target.checked)
+                              setSelectedJobs(e.target.checked ? jobOptions.map(o => o.value) : [])
+                            }} /> Select All
                           </label>
                           {jobOptions.map(opt => (
                             <label key={opt.value}>
-                              <input type="checkbox" value={opt.value} checked={selectedJobs.includes(opt.value)} onChange={e => setSelectedJobs(prev => e.target.checked ? [...prev, opt.value] : prev.filter(v => v !== opt.value))} />
+                              <input type="checkbox" value={opt.value} checked={selectedJobs.includes(opt.value)} onChange={e => {
+                                if (e.target.checked) {
+                                  setSelectedJobs(prev => [...prev, opt.value])
+                                } else {
+                                  setSelectedJobs(prev => prev.filter(v => v !== opt.value))
+                                  setSelectAllJobs(false) // Uncheck "Select All" if individual item is deselected
+                                }
+                              }} />
                               {opt.label}
                             </label>
                           ))}
@@ -500,11 +527,21 @@ function Dashboard({ user }) {
                         <div style={{ fontWeight: 700, marginBottom: 4 }}>Task</div>
                         <div className="multi-select-group scroll-box">
                           <label style={{ fontWeight: 500 }}>
-                            <input type="checkbox" checked={selectedTasks.length === taskOptions.length} onChange={e => setSelectedTasks(e.target.checked ? taskOptions.map(o => o.value) : [])} /> Select All
+                            <input type="checkbox" checked={selectAllTasks} onChange={e => {
+                              setSelectAllTasks(e.target.checked)
+                              setSelectedTasks(e.target.checked ? taskOptions.map(o => o.value) : [])
+                            }} /> Select All
                           </label>
                           {taskOptions.map(opt => (
                             <label key={opt.value}>
-                              <input type="checkbox" value={opt.value} checked={selectedTasks.includes(opt.value)} onChange={e => setSelectedTasks(prev => e.target.checked ? [...prev, opt.value] : prev.filter(v => v !== opt.value))} />
+                              <input type="checkbox" value={opt.value} checked={selectedTasks.includes(opt.value)} onChange={e => {
+                                if (e.target.checked) {
+                                  setSelectedTasks(prev => [...prev, opt.value])
+                                } else {
+                                  setSelectedTasks(prev => prev.filter(v => v !== opt.value))
+                                  setSelectAllTasks(false) // Uncheck "Select All" if individual item is deselected
+                                }
+                              }} />
                               {opt.label}
                             </label>
                           ))}
@@ -514,11 +551,21 @@ function Dashboard({ user }) {
                         <div style={{ fontWeight: 700, marginBottom: 4 }}>Worker</div>
                         <div className="multi-select-group scroll-box">
                           <label style={{ fontWeight: 500 }}>
-                            <input type="checkbox" checked={selectedWorkers.length === workerOptions.length} onChange={e => setSelectedWorkers(e.target.checked ? workerOptions.map(o => o.value) : [])} /> Select All
+                            <input type="checkbox" checked={selectAllWorkers} onChange={e => {
+                              setSelectAllWorkers(e.target.checked)
+                              setSelectedWorkers(e.target.checked ? workerOptions.map(o => o.value) : [])
+                            }} /> Select All
                           </label>
                           {workerOptions.map(opt => (
                             <label key={opt.value}>
-                              <input type="checkbox" value={opt.value} checked={selectedWorkers.includes(opt.value)} onChange={e => setSelectedWorkers(prev => e.target.checked ? [...prev, opt.value] : prev.filter(v => v !== opt.value))} />
+                              <input type="checkbox" value={opt.value} checked={selectedWorkers.includes(opt.value)} onChange={e => {
+                                if (e.target.checked) {
+                                  setSelectedWorkers(prev => [...prev, opt.value])
+                                } else {
+                                  setSelectedWorkers(prev => prev.filter(v => v !== opt.value))
+                                  setSelectAllWorkers(false) // Uncheck "Select All" if individual item is deselected
+                                }
+                              }} />
                               {opt.label}
                             </label>
                           ))}
@@ -536,7 +583,7 @@ function Dashboard({ user }) {
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 17 }}>
                         <thead>
                           <tr>
-                            {headers.map(header => (
+                            {reportHeaders.map(header => (
                               <th key={header}>{header}</th>
                             ))}
                           </tr>
@@ -544,7 +591,7 @@ function Dashboard({ user }) {
                         <tbody>
                           {reportResults.map(row => (
                             <tr key={row.id}>
-                              {headers.map(header => (
+                              {reportHeaders.map(header => (
                                 <td key={header}>{row[header]}</td>
                               ))}
                             </tr>
