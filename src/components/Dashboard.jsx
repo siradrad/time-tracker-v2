@@ -51,21 +51,35 @@ function Dashboard({ user }) {
   const [allTasks, setAllTasks] = useState([])
 
   useEffect(() => {
-    loadDashboardData()
-    // Fetch all jobs and tasks for dropdowns
-    async function fetchDropdownData() {
-      try {
-        const jobsRes = await timeTrackerAPI.getAllJobAddresses()
-        setAllJobs(jobsRes.data || [])
-        
-        const tasksRes = await timeTrackerAPI.getAvailableCSITasks()
-        setAllTasks(tasksRes.data || [])
-      } catch (error) {
-        console.error('Error fetching dropdown data:', error)
-        setError('Failed to load dropdown data: ' + error.message)
+    let isMounted = true
+    
+    const loadData = async () => {
+      if (isMounted) {
+        await loadDashboardData()
       }
     }
+    
+    // Fetch all jobs and tasks for dropdowns
+    async function fetchDropdownData() {
+      if (!isMounted) return
+      try {
+        const jobsRes = await timeTrackerAPI.getAllJobAddresses()
+        if (isMounted) setAllJobs(jobsRes.data || [])
+        
+        const tasksRes = await timeTrackerAPI.getAvailableCSITasks()
+        if (isMounted) setAllTasks(tasksRes.data || [])
+      } catch (error) {
+        console.error('Error fetching dropdown data:', error)
+        if (isMounted) setError('Failed to load dropdown data: ' + error.message)
+      }
+    }
+    
+    loadData()
     fetchDropdownData()
+    
+    return () => {
+      isMounted = false
+    }
   }, [user.id])
 
   useEffect(() => {
@@ -103,12 +117,6 @@ function Dashboard({ user }) {
   }, [user.role, allTimeEntries.length]) // Use length instead of full array to prevent unnecessary re-renders
 
   const loadDashboardData = async () => {
-    // Prevent multiple simultaneous loads
-    if (loading) {
-      console.log('⏸️ Dashboard load already in progress, skipping...')
-      return
-    }
-    
     try {
       const timerName = `Dashboard loadDashboardData execution ${Date.now()}`
       console.time(timerName)
@@ -509,8 +517,18 @@ function Dashboard({ user }) {
           </div>
           <div className="dashboard-actions">
             <button 
+              onClick={loadDashboardData}
+              className="btn btn-outline"
+              disabled={loading}
+              title="Refresh dashboard data"
+            >
+              <BarChart3 size={16} />
+              {loading ? 'Loading...' : 'Refresh'}
+            </button>
+            <button 
               onClick={() => setShowAddUser(true)}
               className="btn btn-primary"
+              style={{ marginLeft: '0.5rem' }}
             >
               <UserPlus size={16} />
               Add New User
@@ -1029,13 +1047,26 @@ function Dashboard({ user }) {
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
-        <h2 className="dashboard-title">
-          <BarChart3 />
-          Dashboard
-        </h2>
-        <p className="dashboard-subtitle">
-          Overview of your time tracking activity
-        </p>
+        <div className="dashboard-title-section">
+          <h2 className="dashboard-title">
+            <BarChart3 />
+            Dashboard
+          </h2>
+          <p className="dashboard-subtitle">
+            Overview of your time tracking activity
+          </p>
+        </div>
+        <div className="dashboard-actions">
+          <button 
+            onClick={loadDashboardData}
+            className="btn btn-outline"
+            disabled={loading}
+            title="Refresh dashboard data"
+          >
+            <BarChart3 size={16} />
+            {loading ? 'Loading...' : 'Refresh'}
+          </button>
+        </div>
       </div>
 
       {/* User Stats Cards */}
@@ -1131,14 +1162,20 @@ const styles = `
 }
 
 .dashboard-header {
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.dashboard-title-section {
+  flex: 1;
 }
 
 .dashboard-title {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.5rem;
   margin: 0 0 0.5rem 0;
   font-size: 2rem;
