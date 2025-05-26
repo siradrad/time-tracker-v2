@@ -213,17 +213,11 @@ function ReportPage() {
                                             return (
                                               <div key={task} className="task-item">
                                                 <div className="task-info">
-                                                  <Wrench size={16} />
                                                   <span className="task-name">{task}</span>
+                                                  <span className="task-hours">{hours.toFixed(2)}h</span>
                                                 </div>
-                                                <div className="task-progress-container">
-                                                  <div className="task-bar">
-                                                    <div className="task-progress" style={{ width: `${percentage}%` }}></div>
-                                                  </div>
-                                                  <div className="task-stats">
-                                                    <span className="task-hours">{hours.toFixed(2)}h</span>
-                                                    <span className="task-percentage">{percentage}%</span>
-                                                  </div>
+                                                <div className="task-progress">
+                                                  <div className="task-progress-fill" style={{ width: `${percentage}%` }}></div>
                                                 </div>
                                               </div>
                                             )
