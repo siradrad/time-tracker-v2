@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from 'react'
-import { timeTrackerAPI } from '../lib/supabase.js'
+import { timeTrackerAPI } from '../lib/supabase-real.js'
 import AddUser from './AddUser.jsx'
 import TimeEntryModal from './TimeEntryModal.jsx'
 import { BarChart3, Clock, MapPin, List, Calendar, Briefcase, Users, Edit, Trash2, Plus, User, ChevronDown, ChevronRight, UserPlus } from 'lucide-react'
+
+function ErrorBoundary({ children }) {
+  const [error, setError] = useState(null);
+  if (error) return <div style={{ color: 'red', padding: 24 }}>Something went wrong in the modal.<br />{error.message}</div>;
+  return React.Children.map(children, child =>
+    React.cloneElement(child, { onError: setError })
+  );
+}
 
 function Dashboard({ user }) {
   const [stats, setStats] = useState(null)
@@ -34,9 +42,31 @@ function Dashboard({ user }) {
   const [showTimeEntryModal, setShowTimeEntryModal] = useState(false)
   const [modalMode, setModalMode] = useState('add') // 'add' or 'edit'
   const [modalEntry, setModalEntry] = useState(null)
+  const [allJobs, setAllJobs] = useState([])
+  const [allTasks, setAllTasks] = useState([])
 
   useEffect(() => {
     loadDashboardData()
+    // Fetch all jobs and tasks for dropdowns
+    async function fetchDropdownData() {
+      try {
+        console.log('Fetching dropdown data...')
+        console.log('timeTrackerAPI:', timeTrackerAPI)
+        console.log('getAllJobAddresses function:', timeTrackerAPI.getAllJobAddresses)
+        
+        const jobsRes = await timeTrackerAPI.getAllJobAddresses()
+        console.log('Jobs response:', jobsRes)
+        setAllJobs(jobsRes.data || [])
+        
+        const tasksRes = await timeTrackerAPI.getAvailableCSITasks()
+        console.log('Tasks response:', tasksRes)
+        setAllTasks(tasksRes.data || [])
+      } catch (error) {
+        console.error('Error fetching dropdown data:', error)
+        setError('Failed to load dropdown data: ' + error.message)
+      }
+    }
+    fetchDropdownData()
   }, [user.id])
 
   useEffect(() => {
@@ -822,19 +852,37 @@ function Dashboard({ user }) {
           />
         )}
 
-        {showTimeEntryModal && (
-          <TimeEntryModal
-            isOpen={showTimeEntryModal}
-            onClose={() => { setShowTimeEntryModal(false); setModalEntry(null); }}
-            onSave={entryData => handleSaveTimeEntry({ ...entryData, manual: modalEntry?.manual || false })}
-            entry={modalEntry}
-            users={allUsersData ? Object.values(allUsersData).map(u => u.user) : []}
-            jobs={jobOptions.map(j => ({ address: j.value, id: j.value }))}
-            tasks={taskOptions.map(t => t.value)}
-            mode={modalMode}
-            currentUser={user}
-          />
-        )}
+        {/* Render TimeEntryModal with ErrorBoundary */}
+        {showTimeEntryModal && (() => {
+          // Defensive: always pass arrays
+          let usersArr = Array.isArray(allUsersData) ? allUsersData : (allUsersData ? Object.values(allUsersData).map(u => u.user) : []);
+          if (!usersArr.length) {
+            usersArr = [{ id: 'unknown', name: 'Unknown User', email: 'unknown@example.com' }];
+          }
+          if (user && user.id && !usersArr.some(u => u.id === user.id)) {
+            usersArr = [...usersArr, { id: user.id, name: user.name || user.email || 'Admin', email: user.email }];
+          }
+          // Use allJobs and allTasks for modal dropdowns
+          const uniqueAddresses = Array.from(new Set(allJobs));
+          const jobsArr = uniqueAddresses.map(address => ({ address, id: address }));
+          const tasksArr = allTasks;
+          console.log('TimeEntryModal props:', { usersArr, jobsArr, tasksArr, modalEntry, modalMode });
+          return (
+            <ErrorBoundary>
+              <TimeEntryModal
+                isOpen={showTimeEntryModal}
+                onClose={() => { setShowTimeEntryModal(false); setModalEntry(null); }}
+                onSave={handleSaveTimeEntry}
+                entry={modalEntry}
+                users={usersArr}
+                jobs={jobsArr}
+                tasks={tasksArr}
+                mode={modalMode}
+                currentUser={user}
+              />
+            </ErrorBoundary>
+          );
+        })()}
       </div>
     )
   }

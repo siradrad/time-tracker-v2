@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { timeTrackerAPI } from '../lib/supabase.js'
+import { timeTrackerAPI } from '../lib/supabase-real.js'
 import TimeEntryModal from './TimeEntryModal.jsx'
 import { List, Clock, MapPin, Briefcase, FileText, Trash2, Calendar, Edit, Plus, BadgeAlert } from 'lucide-react'
 
@@ -10,10 +10,26 @@ function TimeEntries({ user }) {
   const [success, setSuccess] = useState('')
   const [showTimeEntryModal, setShowTimeEntryModal] = useState(false)
   const [editingEntry, setEditingEntry] = useState(null)
+  const [allJobs, setAllJobs] = useState([])
+  const [allTasks, setAllTasks] = useState([])
 
   useEffect(() => {
     loadEntries()
+    loadDropdownData()
   }, [user.id])
+
+  const loadDropdownData = async () => {
+    try {
+      const [jobsRes, tasksRes] = await Promise.all([
+        timeTrackerAPI.getAllJobAddresses(),
+        timeTrackerAPI.getAvailableCSITasks()
+      ])
+      setAllJobs(jobsRes.data || [])
+      setAllTasks(tasksRes.data || [])
+    } catch (err) {
+      console.error('Error loading dropdown data:', err)
+    }
+  }
 
   const loadEntries = async () => {
     try {
@@ -266,8 +282,8 @@ function TimeEntries({ user }) {
           onSave={editingEntry ? handleSaveEdit : handleSaveTimeEntry}
           entry={editingEntry || {}}
           users={[user]}
-          jobs={[]}
-          tasks={[]}
+          jobs={allJobs.map(address => ({ address, id: address }))}
+          tasks={allTasks}
           mode={editingEntry ? 'edit' : 'add'}
           currentUser={user}
         />

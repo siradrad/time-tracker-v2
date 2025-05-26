@@ -11,24 +11,24 @@ export default function TimeEntryModal({
   mode = 'add',
   currentUser,
 }) {
-  const [userId, setUserId] = useState(entry.user_id || (users[0] && users[0].id) || '');
-  const [date, setDate] = useState(entry.date || '');
-  const [startTime, setStartTime] = useState(entry.start_time ? entry.start_time.slice(11, 16) : '');
-  const [endTime, setEndTime] = useState(entry.end_time ? entry.end_time.slice(11, 16) : '');
-  const [jobAddress, setJobAddress] = useState(entry.job_address || (jobs[0] && jobs[0].address) || '');
-  const [task, setTask] = useState(entry.csi_division || tasks[0] || '');
-  const [notes, setNotes] = useState(entry.notes || '');
+  const [userId, setUserId] = useState((entry && entry.user_id) || (users[0] && users[0].id) || '');
+  const [date, setDate] = useState((entry && entry.date) || '');
+  const [startTime, setStartTime] = useState((entry && entry.start_time) ? entry.start_time.slice(11, 16) : '');
+  const [endTime, setEndTime] = useState((entry && entry.end_time) ? entry.end_time.slice(11, 16) : '');
+  const [jobAddress, setJobAddress] = useState((entry && entry.job_address) || (jobs[0] && jobs[0].address) || '');
+  const [task, setTask] = useState((entry && entry.csi_division) || tasks[0] || '');
+  const [notes, setNotes] = useState((entry && entry.notes) || '');
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (isOpen) {
-      setUserId(entry.user_id || (users[0] && users[0].id) || '');
-      setDate(entry.date || '');
-      setStartTime(entry.start_time ? entry.start_time.slice(11, 16) : '');
-      setEndTime(entry.end_time ? entry.end_time.slice(11, 16) : '');
-      setJobAddress(entry.job_address || (jobs[0] && jobs[0].address) || '');
-      setTask(entry.csi_division || tasks[0] || '');
-      setNotes(entry.notes || '');
+      setUserId((entry && entry.user_id) || (users[0] && users[0].id) || '');
+      setDate((entry && entry.date) || '');
+      setStartTime((entry && entry.start_time) ? entry.start_time.slice(11, 16) : '');
+      setEndTime((entry && entry.end_time) ? entry.end_time.slice(11, 16) : '');
+      setJobAddress((entry && entry.job_address) || (jobs[0] && jobs[0].address) || '');
+      setTask((entry && entry.csi_division) || tasks[0] || '');
+      setNotes((entry && entry.notes) || '');
       setError('');
     }
   }, [isOpen, entry, users, jobs, tasks]);
@@ -38,7 +38,8 @@ export default function TimeEntryModal({
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
-    if (!userId) return setError('User is required.');
+    const selectedUserId = userId || (entry && entry.user_id) || (users[0] && users[0].id) || '';
+    if (!selectedUserId) return setError('User is required.');
     if (!date) return setError('Date is required.');
     if (!startTime) return setError('Start time is required.');
     if (!endTime) return setError('End time is required.');
@@ -50,7 +51,7 @@ export default function TimeEntryModal({
     const duration = Math.floor((end - start) / 1000);
     if (isNaN(duration) || duration <= 0) return setError('End time must be after start time.');
     onSave({
-      user_id: userId,
+      user_id: selectedUserId,
       date,
       startTime: `${date}T${startTime}:00Z`,
       endTime: `${date}T${endTime}:00Z`,

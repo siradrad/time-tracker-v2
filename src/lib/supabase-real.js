@@ -647,6 +647,20 @@ class SupabaseDBManager {
       return { data: [], error }
     }
   }
+
+  async getAllJobAddresses() {
+    try {
+      const { data, error } = await supabase
+        .from(TABLES.JOB_ADDRESSES)
+        .select('address')
+        .order('address', { ascending: true });
+      if (error) throw error;
+      const addresses = data?.map(j => j.address) || [];
+      return { data: addresses, error: null };
+    } catch (error) {
+      return { data: [], error };
+    }
+  }
 }
 
 const dbManager = new SupabaseDBManager()
@@ -701,4 +715,6 @@ export const timeTrackerAPI = {
 
     return { unsubscribe: () => subscription.unsubscribe() }
   },
+
+  getAllJobAddresses: () => dbManager.getAllJobAddresses(),
 } 
