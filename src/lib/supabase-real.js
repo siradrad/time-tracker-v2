@@ -360,7 +360,8 @@ class SupabaseDBManager {
           job_address: entry.jobAddress,
           csi_division: entry.task,
           notes: entry.notes,
-          date: entry.date
+          date: entry.date,
+          manual: entry.manual || false
         })
         .select()
 
@@ -397,7 +398,8 @@ class SupabaseDBManager {
           job_address: updatedEntry.jobAddress,
           csi_division: updatedEntry.task,
           notes: updatedEntry.notes,
-          date: updatedEntry.date
+          date: updatedEntry.date,
+          manual: updatedEntry.manual || false
         })
         .eq('id', entryId)
         .eq('user_id', userId)

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { timeTrackerAPI } from '../lib/supabase.js'
 import AddUser from './AddUser.jsx'
+import TimeEntryModal from './TimeEntryModal.jsx'
 import { BarChart3, Clock, MapPin, List, Calendar, Briefcase, Users, Edit, Trash2, Plus, User, ChevronDown, ChevronRight, UserPlus } from 'lucide-react'
 
 function Dashboard({ user }) {
@@ -30,6 +31,9 @@ function Dashboard({ user }) {
   const [selectedJobs, setSelectedJobs] = useState([])
   const [selectedTasks, setSelectedTasks] = useState([])
   const [selectedWorkers, setSelectedWorkers] = useState([])
+  const [showTimeEntryModal, setShowTimeEntryModal] = useState(false)
+  const [modalMode, setModalMode] = useState('add') // 'add' or 'edit'
+  const [modalEntry, setModalEntry] = useState(null)
 
   useEffect(() => {
     loadDashboardData()
@@ -103,22 +107,33 @@ function Dashboard({ user }) {
     setShowAddUser(false)
   }
 
-  const handleEditEntry = (entry) => {
-    setEditingEntry(entry)
+  const handleAddEntry = () => {
+    setModalMode('add')
+    setModalEntry(null)
+    setShowTimeEntryModal(true)
   }
 
-  const handleSaveEdit = async (updatedEntry) => {
+  const handleEditEntry = (entry) => {
+    setModalMode('edit')
+    setModalEntry(entry)
+    setShowTimeEntryModal(true)
+  }
+
+  const handleSaveTimeEntry = async (entryData) => {
     try {
-      await timeTrackerAPI.editTimeEntry(editingEntry.user_id, editingEntry.id, updatedEntry)
-      setAllTimeEntries(prev => prev.map(entry => 
-        entry.id === editingEntry.id 
-          ? { ...entry, ...updatedEntry, updated_at: new Date().toISOString() }
-          : entry
-      ))
-      setEditingEntry(null)
+      if (modalMode === 'add') {
+        const res = await timeTrackerAPI.addTimeEntry(entryData.user_id, entryData)
+        if (res.error) throw res.error
+        setAllTimeEntries(prev => [res.data[0], ...prev])
+      } else if (modalMode === 'edit' && modalEntry) {
+        const res = await timeTrackerAPI.editTimeEntry(modalEntry.user_id, modalEntry.id, entryData)
+        if (res.error) throw res.error
+        setAllTimeEntries(prev => prev.map(entry => entry.id === modalEntry.id ? { ...entry, ...entryData, updated_at: new Date().toISOString() } : entry))
+      }
+      setShowTimeEntryModal(false)
+      setModalEntry(null)
     } catch (err) {
-      setError('Failed to update time entry')
-      console.error('Error updating entry:', err)
+      setError('Failed to save time entry: ' + (err.message || err))
     }
   }
 
@@ -384,6 +399,14 @@ function Dashboard({ user }) {
             >
               <BarChart3 size={16} />
               Reporting
+            </button>
+            <button
+              onClick={handleAddEntry}
+              className="btn btn-primary"
+              style={{ marginLeft: '0.5rem' }}
+            >
+              <Plus size={16} />
+              Add Time Entry
             </button>
           </div>
         </div>
@@ -791,6 +814,20 @@ function Dashboard({ user }) {
           <AddUser 
             onUserAdded={handleUserAdded}
             onClose={() => setShowAddUser(false)}
+          />
+        )}
+
+        {showTimeEntryModal && (
+          <TimeEntryModal
+            isOpen={showTimeEntryModal}
+            onClose={() => { setShowTimeEntryModal(false); setModalEntry(null); }}
+            onSave={handleSaveTimeEntry}
+            entry={modalEntry}
+            users={allUsersData ? Object.values(allUsersData).map(u => u.user) : []}
+            jobs={jobOptions.map(j => ({ address: j.value, id: j.value }))}
+            tasks={taskOptions.map(t => t.value)}
+            mode={modalMode}
+            currentUser={user}
           />
         )}
       </div>
