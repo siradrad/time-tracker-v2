@@ -4,6 +4,13 @@ import bcrypt from 'bcryptjs'
 class SupabaseDBManager {
   constructor() {
     this.currentUser = null
+    this._cache = {
+      allUsersData: null,
+      allUsersDataTimestamp: null,
+      csiTasks: null,
+      csiTasksTimestamp: null,
+      cacheTimeout: 60000 // 1 minute cache timeout
+    }
     this._loadCurrentUser()
     this._initializeData()
   }
@@ -366,6 +373,10 @@ class SupabaseDBManager {
         .select()
 
       if (error) throw error
+      
+      // Invalidate cache since data has changed
+      this._invalidateCache()
+      
       return { data, error: null }
     } catch (error) {
       return { data: null, error }
@@ -381,6 +392,10 @@ class SupabaseDBManager {
         .eq('user_id', userId)
 
       if (error) throw error
+      
+      // Invalidate cache since data has changed
+      this._invalidateCache()
+      
       return { error: null }
     } catch (error) {
       return { error }
@@ -406,6 +421,10 @@ class SupabaseDBManager {
         .select()
 
       if (error) throw error
+      
+      // Invalidate cache since data has changed
+      this._invalidateCache()
+      
       return { data, error: null }
     } catch (error) {
       return { error }
@@ -418,7 +437,7 @@ class SupabaseDBManager {
         .from(TABLES.TIME_ENTRIES)
         .select(`
           *,
-          users!time_entries_user_id_fkey (
+          users (
             name,
             username,
             role
@@ -475,28 +494,107 @@ class SupabaseDBManager {
     }
   }
 
-  async getAllUsersData() {
+  async getAllUsersData(forceRefresh = false) {
     try {
-      const { data: users, error } = await supabase
-        .from(TABLES.USERS)
-        .select('*')
+      // Check cache first (unless force refresh is requested)
+      const now = Date.now()
+      if (!forceRefresh && 
+          this._cache.allUsersData && 
+          this._cache.allUsersDataTimestamp && 
+          (now - this._cache.allUsersDataTimestamp) < this._cache.cacheTimeout) {
+        console.log("📋 Returning cached getAllUsersData")
+        return this._cache.allUsersData
+      }
 
-      if (error) throw error
+      const timerName = `getAllUsersData execution ${Date.now()}`
+      console.time(timerName)
+      console.log("🔄 Cache miss or expired, fetching fresh data...")
+      
+      // Single query to get all users, time entries, and job addresses in parallel
+      const [usersResult, timeEntriesResult, jobAddressesResult] = await Promise.all([
+        supabase.from(TABLES.USERS).select('*'),
+        supabase.from(TABLES.TIME_ENTRIES).select('*'),
+        supabase.from(TABLES.JOB_ADDRESSES).select('*')
+      ])
 
+      if (usersResult.error) throw usersResult.error
+      
+      const users = usersResult.data || []
+      const allTimeEntries = timeEntriesResult.data || []
+      const allJobAddresses = jobAddressesResult.data || []
+
+      // Group data by user_id for efficient processing
+      const timeEntriesByUser = {}
+      const jobAddressesByUser = {}
+
+      allTimeEntries.forEach(entry => {
+        if (!timeEntriesByUser[entry.user_id]) {
+          timeEntriesByUser[entry.user_id] = []
+        }
+        timeEntriesByUser[entry.user_id].push(entry)
+      })
+
+      allJobAddresses.forEach(address => {
+        if (!jobAddressesByUser[address.user_id]) {
+          jobAddressesByUser[address.user_id] = []
+        }
+        jobAddressesByUser[address.user_id].push(address)
+      })
+
+      // Build user data efficiently using pre-grouped data
       const allData = {}
-      for (const user of users || []) {
+      for (const user of users) {
+        const userTimeEntries = timeEntriesByUser[user.id] || []
+        const userJobAddresses = jobAddressesByUser[user.id] || []
+
+        // Calculate stats locally instead of making more DB calls
+        const totalHours = userTimeEntries.reduce((sum, entry) => sum + entry.duration, 0) / 3600
+        const divisionBreakdown = userTimeEntries.reduce((acc, entry) => {
+          acc[entry.csi_division] = (acc[entry.csi_division] || 0) + entry.duration
+          return acc
+        }, {})
+
+        const stats = {
+          totalEntries: userTimeEntries.length,
+          totalHours,
+          totalAddresses: userJobAddresses.length,
+          divisionBreakdown,
+          lastEntry: userTimeEntries.length > 0 ? 
+            userTimeEntries.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0].created_at : 
+            null,
+        }
+
         allData[user.username] = {
           user,
-          stats: await this.getUserStats(user.id),
-          jobAddresses: (await this.getJobAddresses(user.id)).data.length,
-          timeEntries: (await this.getTimeEntries(user.id, Infinity)).data.length,
+          stats,
+          jobAddresses: userJobAddresses.length,
+          timeEntries: userTimeEntries.length,
         }
       }
+
+      // Cache the results
+      this._cache.allUsersData = allData
+      this._cache.allUsersDataTimestamp = Date.now()
+
+      console.timeEnd(timerName)
+      console.log(`✅ Optimized getAllUsersData: processed ${users.length} users with 3 queries instead of ${1 + users.length * 4}`)
+      console.log(`💾 Data cached for ${this._cache.cacheTimeout / 1000} seconds`)
+      
       return allData
     } catch (error) {
       console.error('Error getting all users data:', error)
+      // Timer already ended in success path, don't end again
       return {}
     }
+  }
+
+  // Cache management methods
+  _invalidateCache() {
+    console.log("🗑️ Cache invalidated due to data changes")
+    this._cache.allUsersData = null
+    this._cache.allUsersDataTimestamp = null
+    this._cache.csiTasks = null
+    this._cache.csiTasksTimestamp = null
   }
 
   async clearAllData() {
@@ -534,38 +632,71 @@ class SupabaseDBManager {
     }
   }
 
-  async getCSITasks() {
+  async getCSITasks(forceRefresh = false) {
     try {
-      const { data: tasks, error } = await supabase
-        .from(TABLES.CSI_TASKS)
-        .select('*')
-        .order('name', { ascending: true })
+      // Check cache first (unless force refresh is requested)
+      const now = Date.now()
+      if (!forceRefresh && 
+          this._cache.csiTasks && 
+          this._cache.csiTasksTimestamp && 
+          (now - this._cache.csiTasksTimestamp) < this._cache.cacheTimeout) {
+        console.log("📋 Returning cached CSI tasks")
+        return { data: this._cache.csiTasks, error: null }
+      }
 
-      if (error) throw error
-
-      // Calculate usage statistics for each task
-      const tasksWithStats = []
+      const timerName = `getCSITasks execution ${Date.now()}`
+      console.time(timerName)
+      console.log("🔄 Cache miss or expired, fetching fresh CSI tasks...")
       
-      for (const task of tasks || []) {
-        const { data: timeEntries } = await supabase
-          .from(TABLES.TIME_ENTRIES)
-          .select('duration, user_id')
-          .eq('csi_division', task.name)
+      // Get tasks and all time entries in parallel
+      const [tasksResult, timeEntriesResult] = await Promise.all([
+        supabase.from(TABLES.CSI_TASKS).select('*').order('name', { ascending: true }),
+        supabase.from(TABLES.TIME_ENTRIES).select('duration, user_id, csi_division')
+      ])
 
-        const usageCount = timeEntries?.length || 0
-        const totalSeconds = timeEntries?.reduce((sum, entry) => sum + entry.duration, 0) || 0
-        const uniqueUsers = new Set(timeEntries?.map(entry => entry.user_id) || []).size
+      if (tasksResult.error) throw tasksResult.error
+      
+      const tasks = tasksResult.data || []
+      const allTimeEntries = timeEntriesResult.data || []
 
-        tasksWithStats.push({
+      console.log(`📋 Processing ${tasks.length} CSI tasks with ${allTimeEntries.length} total time entries`)
+
+      // Group time entries by CSI division for efficient processing
+      const entriesByDivision = {}
+      allTimeEntries.forEach(entry => {
+        const division = entry.csi_division
+        if (!entriesByDivision[division]) {
+          entriesByDivision[division] = []
+        }
+        entriesByDivision[division].push(entry)
+      })
+
+      // Calculate usage statistics efficiently
+      const tasksWithStats = tasks.map(task => {
+        const taskEntries = entriesByDivision[task.name] || []
+        const usageCount = taskEntries.length
+        const totalSeconds = taskEntries.reduce((sum, entry) => sum + (entry.duration || 0), 0)
+        const uniqueUsers = new Set(taskEntries.map(entry => entry.user_id).filter(Boolean)).size
+
+        return {
           ...task,
           usage_count: usageCount,
           total_hours: Math.round((totalSeconds / 3600) * 10) / 10,
           unique_users: uniqueUsers
-        })
-      }
+        }
+      })
+
+      // Cache the results
+      this._cache.csiTasks = tasksWithStats
+      this._cache.csiTasksTimestamp = Date.now()
+
+      console.timeEnd(timerName)
+      console.log(`✅ Optimized getCSITasks: processed ${tasks.length} tasks with 2 queries instead of ${1 + tasks.length}`)
+      console.log(`💾 CSI tasks cached for ${this._cache.cacheTimeout / 1000} seconds`)
 
       return { data: tasksWithStats, error: null }
     } catch (error) {
+      console.error('❌ Error in getCSITasks:', error)
       return { data: [], error }
     }
   }
@@ -583,6 +714,9 @@ class SupabaseDBManager {
         }
         throw error
       }
+
+      // Invalidate cache since CSI tasks have changed
+      this._invalidateCache()
 
       return { data, error: null }
     } catch (error) {
@@ -613,6 +747,9 @@ class SupabaseDBManager {
           .eq('csi_division', data[0].name) // This won't work, we need the old name
       }
 
+      // Invalidate cache since CSI tasks have changed
+      this._invalidateCache()
+
       return { data, error: null }
     } catch (error) {
       return { error }
@@ -627,6 +764,10 @@ class SupabaseDBManager {
         .eq('id', taskId)
 
       if (error) throw error
+      
+      // Invalidate cache since CSI tasks have changed
+      this._invalidateCache()
+      
       return { error: null }
     } catch (error) {
       return { error }
@@ -635,6 +776,15 @@ class SupabaseDBManager {
 
   async getAvailableCSITasks() {
     try {
+      // Use cached CSI tasks if available
+      const cachedResult = await this.getCSITasks()
+      if (cachedResult.data) {
+        const taskNames = cachedResult.data.map(task => task.name)
+        console.log(`📋 Retrieved ${taskNames.length} task names from cache`)
+        return { data: taskNames, error: null }
+      }
+
+      // Fallback to direct query if cache fails
       const { data, error } = await supabase
         .from(TABLES.CSI_TASKS)
         .select('name')

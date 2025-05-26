@@ -96,25 +96,41 @@ function Dashboard({ user }) {
 
   const loadDashboardData = async () => {
     try {
+      const timerName = `Dashboard loadDashboardData execution ${Date.now()}`
+      console.time(timerName)
       setLoading(true)
       setError('')
 
       if (user.role === 'admin') {
-        // Admin view: Load all time entries and user data
+        console.log(`🔄 Loading admin dashboard data...`)
+        
+        // Admin view: Load all time entries and user data in parallel
         const [entriesResult, usersResult] = await Promise.all([
           timeTrackerAPI.getAllTimeEntries(200),
           timeTrackerAPI.getAllUsersData()
         ])
+        
+        console.log(`📊 Loaded ${entriesResult.data?.length || 0} time entries`)
+        console.log(`👥 Loaded ${Object.keys(usersResult || {}).length} users`)
+        
         setAllTimeEntries(entriesResult.data || [])
         setAllUsersData(usersResult)
       } else {
+        console.log(`🔄 Loading user dashboard data for: ${user.username}`)
+        
         // Regular user view: Load personal stats
         const userStats = await timeTrackerAPI.getUserStats(user.id)
         setStats(userStats)
+        
+        console.log(`📈 Loaded stats: ${userStats.totalEntries} entries, ${userStats.totalHours.toFixed(1)}h total`)
       }
+      
+      console.timeEnd(timerName)
+      console.log("✅ Dashboard data loading completed")
     } catch (err) {
       setError('Failed to load dashboard data')
-      console.error('Error loading dashboard:', err)
+      console.error('❌ Error loading dashboard:', err)
+      // Timer already ended in success path, don't end again
     } finally {
       setLoading(false)
     }
@@ -179,20 +195,35 @@ function Dashboard({ user }) {
   }
 
   const groupEntriesByHierarchy = (entries) => {
+    const timerName = `groupEntriesByHierarchy processing ${Date.now()}`
+    console.time(timerName)
+    console.log(`🔄 Grouping ${entries.length} entries by hierarchy...`)
+    
     const grouped = {}
     
-    entries.forEach(entry => {
+    // Optimized grouping with reduced object property access
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i]
       const date = new Date(entry.date || entry.created_at)
       const year = date.getFullYear()
       const month = date.getMonth()
       const biweek = getBiweeklyPeriod(date)
       
+      // Use nested object creation with default values for better performance
       if (!grouped[year]) grouped[year] = {}
       if (!grouped[year][month]) grouped[year][month] = {}
       if (!grouped[year][month][biweek]) grouped[year][month][biweek] = []
       
       grouped[year][month][biweek].push(entry)
-    })
+    }
+    
+    const yearCount = Object.keys(grouped).length
+    const totalPeriods = Object.values(grouped).reduce((sum, year) => 
+      sum + Object.values(year).reduce((monthSum, month) => 
+        monthSum + Object.keys(month).length, 0), 0)
+    
+    console.log(`📊 Grouped into ${yearCount} years, ${totalPeriods} periods`)
+    console.timeEnd(timerName)
     
     return grouped
   }
@@ -206,9 +237,30 @@ function Dashboard({ user }) {
   }
 
   const calculateGroupStats = (entries) => {
+    if (!entries || entries.length === 0) {
+      return { totalEntries: 0, totalHours: 0, uniqueUsers: 0 }
+    }
+    
+    const timerName = `calculateGroupStats for ${entries.length} entries ${Date.now()}`
+    console.time(timerName)
+    
     const totalEntries = entries.length
-    const totalHours = entries.reduce((sum, entry) => sum + (entry.duration / 3600), 0)
-    const uniqueUsers = new Set(entries.map(entry => entry.user_id)).size
+    let totalSeconds = 0
+    const userIds = new Set()
+    
+    // Single pass through entries for better performance
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i]
+      totalSeconds += entry.duration || 0
+      if (entry.user_id) {
+        userIds.add(entry.user_id)
+      }
+    }
+    
+    const totalHours = totalSeconds / 3600
+    const uniqueUsers = userIds.size
+    
+    console.timeEnd(timerName)
     
     return { totalEntries, totalHours, uniqueUsers }
   }
@@ -379,8 +431,22 @@ function Dashboard({ user }) {
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading dashboard...</p>
+        <div className="loading-content">
+          <div className="spinner"></div>
+          <div className="loading-text">
+            <h3>Loading Dashboard...</h3>
+            <p>
+              {user.role === 'admin' 
+                ? 'Fetching all users and time entries data...' 
+                : `Loading ${user.username}'s personal dashboard...`}
+            </p>
+            <div className="loading-steps">
+              <div className="loading-step">📊 Gathering statistics</div>
+              <div className="loading-step">👥 Processing user data</div>
+              <div className="loading-step">⏱️ Optimizing performance</div>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -673,7 +739,7 @@ function Dashboard({ user }) {
             ) : (
               <div className="hierarchical-entries">
                 {years.map(year => {
-                  const yearEntries = Object.values(groupedEntries[year]).flat(Infinity)
+                  const yearEntries = Object.values(groupedEntries[year]).flat(2)
                   const yearStats = calculateGroupStats(yearEntries)
                   const yearKey = `year-${year}`
                   const isYearExpanded = expandedSections.years[yearKey]
@@ -1512,6 +1578,76 @@ const styles = `
 .error-container {
   text-align: center;
   padding: 3rem;
+}
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 2rem;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  text-align: center;
+  max-width: 400px;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--color-background-alt, #f3f4f6);
+  border-top: 4px solid var(--color-accent, #3b82f6);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+}
+
+.loading-text p {
+  margin: 0 0 1rem 0;
+  color: var(--color-text-secondary, #6b7280);
+  font-size: 1rem;
+}
+
+.loading-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.loading-step {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.25rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.loading-step:nth-child(1) { animation-delay: 0s; }
+.loading-step:nth-child(2) { animation-delay: 0.5s; }
+.loading-step:nth-child(3) { animation-delay: 1s; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 
 @media (max-width: 768px) {

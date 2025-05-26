@@ -212,7 +212,7 @@ function TimeEntries({ user }) {
                     <div className="entry-time">
                       <div className="entry-date">
                         <Calendar size={16} />
-                        {formatDate(entry.created_at)}
+                        {formatDate(entry.date || entry.created_at)}
                       </div>
                       <div className="entry-duration">
                         <Clock size={16} />
