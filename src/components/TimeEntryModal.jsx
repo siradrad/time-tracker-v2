@@ -109,8 +109,8 @@ export default function TimeEntryModal({
             <label>Task</label>
             <select value={task} onChange={e => setTask(e.target.value)} required className="form-select">
               <option value="">Select task...</option>
-              {tasks.map(t => (
-                <option key={t} value={t}>{t}</option>
+              {tasks.map((t, index) => (
+                <option key={`task-${index}-${t}`} value={t}>{t}</option>
               ))}
             </select>
           </div>
