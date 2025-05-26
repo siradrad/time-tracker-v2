@@ -739,7 +739,10 @@ function Dashboard({ user }) {
             ) : (
               <div className="hierarchical-entries">
                 {years.map(year => {
-                  const yearEntries = Object.values(groupedEntries[year]).flat(2)
+                  // Properly flatten year entries: go through months, then biweeks, then entries
+                  const yearEntries = Object.values(groupedEntries[year])
+                    .map(month => Object.values(month))
+                    .flat(2)
                   const yearStats = calculateGroupStats(yearEntries)
                   const yearKey = `year-${year}`
                   const isYearExpanded = expandedSections.years[yearKey]

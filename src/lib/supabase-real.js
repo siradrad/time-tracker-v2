@@ -9,7 +9,9 @@ class SupabaseDBManager {
       allUsersDataTimestamp: null,
       csiTasks: null,
       csiTasksTimestamp: null,
-      cacheTimeout: 60000 // 1 minute cache timeout
+      allJobAddresses: null,
+      allJobAddressesTimestamp: null,
+      cacheTimeout: 300000 // 5 minutes cache timeout (increased from 60000)
     }
     this._loadCurrentUser()
     this._initializeData()
@@ -595,6 +597,8 @@ class SupabaseDBManager {
     this._cache.allUsersDataTimestamp = null
     this._cache.csiTasks = null
     this._cache.csiTasksTimestamp = null
+    this._cache.allJobAddresses = null
+    this._cache.allJobAddressesTimestamp = null
   }
 
   async clearAllData() {
@@ -798,17 +802,37 @@ class SupabaseDBManager {
     }
   }
 
-  async getAllJobAddresses() {
+  async getAllJobAddresses(forceRefresh = false) {
     try {
+      // Check cache first (unless force refresh is requested)
+      const now = Date.now()
+      if (!forceRefresh &&
+          this._cache.allJobAddresses &&
+          this._cache.allJobAddressesTimestamp &&
+          (now - this._cache.allJobAddressesTimestamp) < this._cache.cacheTimeout) {
+        console.log("📋 Returning cached allJobAddresses")
+        return { data: this._cache.allJobAddresses, error: null }
+      }
+
+      const timerName = `getAllJobAddresses execution ${Date.now()}`
+      console.time(timerName)
+      console.log("🔄 Cache miss or expired for allJobAddresses, fetching fresh data...")
+
       const { data, error } = await supabase
         .from(TABLES.JOB_ADDRESSES)
         .select('address')
-        .order('address', { ascending: true });
-      if (error) throw error;
-      const addresses = data?.map(j => j.address) || [];
-      return { data: addresses, error: null };
+        .order('address', { ascending: true })
+
+      if (error) throw error
+      const addresses = data?.map(j => j.address) || []
+
+      this._cache.allJobAddresses = addresses
+      this._cache.allJobAddressesTimestamp = now
+      console.timeEnd(timerName)
+      console.log(`💾 All job addresses cached for ${this._cache.cacheTimeout / 1000} seconds`)
+      return { data: addresses, error: null }
     } catch (error) {
-      return { data: [], error };
+      return { data: [], error }
     }
   }
 }
