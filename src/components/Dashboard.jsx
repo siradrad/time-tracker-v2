@@ -69,7 +69,11 @@ function Dashboard({ user }) {
   }, [user.id])
 
   useEffect(() => {
-    if (user.role === 'admin') {
+    // Only process options when we have time entries and user is admin
+    // Add length check to prevent unnecessary re-processing
+    if (user.role === 'admin' && allTimeEntries.length > 0) {
+      console.log(`🔄 Processing ${allTimeEntries.length} entries for dropdown options...`)
+      
       // Jobs: aggregate from all time entries, but filter out break/travel types
       const EXCLUDE_JOBS = [
         'Break/Lunch', 'Break/Lunch Time', 'Travel', 'Travel Time'
@@ -80,9 +84,11 @@ function Dashboard({ user }) {
           .filter(addr => addr && !EXCLUDE_JOBS.includes(addr))
       ))
       setJobOptions(allJobs.map(addr => ({ value: addr, label: addr })))
+      
       // Tasks: aggregate from all time entries
       const allTasks = Array.from(new Set(allTimeEntries.map(e => e.csi_division).filter(Boolean)))
       setTaskOptions(allTasks.map(task => ({ value: task, label: task })))
+      
       // Workers: aggregate from all time entries
       const workerMap = {}
       allTimeEntries.forEach(e => {
@@ -91,10 +97,18 @@ function Dashboard({ user }) {
         }
       })
       setWorkerOptions(Object.entries(workerMap).map(([id, name]) => ({ value: id, label: name })))
+      
+      console.log(`✅ Processed options: ${allJobs.length} jobs, ${allTasks.length} tasks, ${Object.keys(workerMap).length} workers`)
     }
-  }, [user.role, allTimeEntries])
+  }, [user.role, allTimeEntries.length]) // Use length instead of full array to prevent unnecessary re-renders
 
   const loadDashboardData = async () => {
+    // Prevent multiple simultaneous loads
+    if (loading) {
+      console.log('⏸️ Dashboard load already in progress, skipping...')
+      return
+    }
+    
     try {
       const timerName = `Dashboard loadDashboardData execution ${Date.now()}`
       console.time(timerName)
@@ -195,9 +209,14 @@ function Dashboard({ user }) {
   }
 
   const groupEntriesByHierarchy = (entries) => {
-    const timerName = `groupEntriesByHierarchy processing ${Date.now()}`
-    console.time(timerName)
-    console.log(`🔄 Grouping ${entries.length} entries by hierarchy...`)
+    // Only log timing for large datasets to reduce console noise
+    const shouldLog = entries.length > 50
+    const timerName = shouldLog ? `groupEntriesByHierarchy processing ${Date.now()}` : null
+    
+    if (shouldLog) {
+      console.time(timerName)
+      console.log(`🔄 Grouping ${entries.length} entries by hierarchy...`)
+    }
     
     const grouped = {}
     
@@ -217,13 +236,15 @@ function Dashboard({ user }) {
       grouped[year][month][biweek].push(entry)
     }
     
-    const yearCount = Object.keys(grouped).length
-    const totalPeriods = Object.values(grouped).reduce((sum, year) => 
-      sum + Object.values(year).reduce((monthSum, month) => 
-        monthSum + Object.keys(month).length, 0), 0)
-    
-    console.log(`📊 Grouped into ${yearCount} years, ${totalPeriods} periods`)
-    console.timeEnd(timerName)
+    if (shouldLog) {
+      const yearCount = Object.keys(grouped).length
+      const totalPeriods = Object.values(grouped).reduce((sum, year) => 
+        sum + Object.values(year).reduce((monthSum, month) => 
+          monthSum + Object.keys(month).length, 0), 0)
+      
+      console.log(`📊 Grouped into ${yearCount} years, ${totalPeriods} periods`)
+      console.timeEnd(timerName)
+    }
     
     return grouped
   }
@@ -241,8 +262,13 @@ function Dashboard({ user }) {
       return { totalEntries: 0, totalHours: 0, uniqueUsers: 0 }
     }
     
-    const timerName = `calculateGroupStats for ${entries.length} entries ${Date.now()}`
-    console.time(timerName)
+    // Only log timing for larger datasets to reduce console noise
+    const shouldLog = entries.length > 100
+    const timerName = shouldLog ? `calculateGroupStats for ${entries.length} entries ${Date.now()}` : null
+    
+    if (shouldLog) {
+      console.time(timerName)
+    }
     
     const totalEntries = entries.length
     let totalSeconds = 0
@@ -260,7 +286,9 @@ function Dashboard({ user }) {
     const totalHours = totalSeconds / 3600
     const uniqueUsers = userIds.size
     
-    console.timeEnd(timerName)
+    if (shouldLog) {
+      console.timeEnd(timerName)
+    }
     
     return { totalEntries, totalHours, uniqueUsers }
   }

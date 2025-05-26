@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample Report Screen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --report-bg-primary: #F8F9FA; /* Very light gray */
+            --report-bg-container: #FFFFFF; /* White */
+            --report-bg-alt-container: #F3F4F6; /* Light gray for pills */
+            --report-text-primary: #111827; /* Dark Gray/Black */
+            --report-text-secondary: #6B7280; /* Medium Gray */
+            --report-text-accent: #FFFFFF; /* White for text on accent bg */
+            --report-accent-primary: #F97316; /* Orange */
+            --report-border-color: #E5E7EB; /* Light Gray for borders */
+
+            --font-family-base: 'Inter', sans-serif;
+
+            --border-radius-small: 4px;
+            --border-radius-medium: 8px;
+            --border-radius-large: 12px;
+            --border-radius-pill: 9999px;
+        }
+
+        body {
+            margin: 0;
+            font-family: var(--font-family-base);
+            background-color: var(--report-bg-primary);
+            color: var(--report-text-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            display: flex;
+            justify-content: center;
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+
+        .report-screen {
+            width: 100%;
+            max-width: 375px; /* Simulate mobile screen width */
+            background-color: var(--report-bg-primary); /* Matches body or can be specific */
+            border-radius: var(--border-radius-large); /* Optional: if the whole screen has rounded corners */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Optional: subtle shadow for the screen */
+            overflow: hidden; /* If using border-radius on screen */
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background-color: var(--report-bg-container); /* Header might have white bg as per left screen */
+             /* border-bottom: 1px solid var(--report-border-color); */ /* Optional: if header is separate */
+        }
+
+        .report-header__back-icon,
+        .report-header__menu-icon {
+            font-size: 24px;
+            color: var(--report-text-primary);
+            cursor: pointer;
+            padding: 8px;
+        }
+        .report-header__menu-icon {
+            font-weight: bold;
+        }
+
+        .report-header__title {
+            font-size: 20px; /* Adjusted from plan for typical header title */
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .report-content {
+            padding: 16px;
+        }
+
+        .timeframe-selector,
+        .temperature-scale-selector {
+            display: flex;
+            justify-content: space-between; /* Or space-around / start */
+            gap: 8px; /* Spacing between buttons */
+            margin-bottom: 24px;
+        }
+
+        .timeframe-selector__button,
+        .temperature-scale-selector__button {
+            flex-grow: 1; /* Make buttons fill space if needed, or set fixed width */
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            border-radius: var(--border-radius-pill);
+            background-color: var(--report-bg-alt-container); /* Default button bg */
+            color: var(--report-text-primary);
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .timeframe-selector__button--active,
+        .temperature-scale-selector__button--active {
+            background-color: var(--report-accent-primary);
+            color: var(--report-text-accent);
+        }
+
+        .report-card {
+            background-color: var(--report-bg-container);
+            border-radius: var(--border-radius-large);
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03); /* Subtle shadow for cards */
+        }
+
+        .data-display-card__period {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--report-text-primary);
+            margin-bottom: 4px;
+        }
+
+        .data-display-card__value {
+            font-size: 48px;
+            font-weight: 500; /* Or 400 for Regular */
+            color: var(--report-text-primary);
+            margin-bottom: 20px;
+        }
+
+        .graph-placeholder {
+            height: 150px;
+            border: 1px dashed var(--report-border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--report-text-secondary);
+            font-size: 14px;
+            border-radius: var(--border-radius-medium);
+            position: relative; /* For highlight positioning */
+        }
+        .graph-placeholder__highlight {
+            position: absolute;
+            left: 60%; /* Example position */
+            top: 55%;  /* Example position */
+            transform: translate(-50%, -50%);
+            color: var(--report-accent-primary);
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .graph-placeholder__highlight-marker {
+            width: 2px;
+            height: 10px;
+            background-color: var(--report-accent-primary);
+            margin: 2px auto 0;
+        }
+
+
+        .components-section__title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--report-text-primary);
+        }
+
+        .component-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .component-item__icon {
+            flex-shrink: 0;
+            /* Style for icon container if needed, e.g., background */
+            padding: 8px; /* If icon itself doesn't have padding */
+            background-color: var(--report-bg-alt-container); /* Icon background like in image */
+            border-radius: 50%; /* Circular background for icon */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .component-item__icon svg {
+            display: block; /* remove extra space below svg */
+        }
+
+        .component-item__details {
+            flex-grow: 1;
+        }
+
+        .component-item__name {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 2px 0;
+            color: var(--report-text-primary);
+        }
+
+        .component-item__description {
+            font-size: 14px;
+            color: var(--report-text-secondary);
+            margin: 0;
+        }
+
+        .component-item__value {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--report-text-primary);
+            background-color: var(--report-bg-alt-container);
+            padding: 4px 10px;
+            border-radius: var(--border-radius-pill);
+            white-space: nowrap;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="report-screen">
+        <header class="report-header">
+            <span class="report-header__back-icon">&lt;</span>
+            <h1 class="report-header__title">Temperature</h1>
+            <span class="report-header__menu-icon">&#8230;</span> <!-- HTML entity for horizontal ellipsis -->
+        </header>
+
+        <main class="report-content">
+            <div class="timeframe-selector">
+                <button class="timeframe-selector__button">W</button>
+                <button class="timeframe-selector__button">M</button>
+                <button class="timeframe-selector__button">4M</button>
+                <button class="timeframe-selector__button timeframe-selector__button--active">8M</button>
+                <button class="timeframe-selector__button">Y</button>
+                <button class="timeframe-selector__button">All</button>
+            </div>
+
+            <div class="report-card data-display-card">
+                <div class="data-display-card__period">April</div>
+                <div class="data-display-card__value">138°C</div>
+                <div class="graph-placeholder">
+                    <p>Line chart showing temperature over time</p>
+                    <div class="graph-placeholder__highlight">
+                        <span>120°C</span>
+                        <div class="graph-placeholder__highlight-marker"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="temperature-scale-selector">
+                <button class="temperature-scale-selector__button">100°</button>
+                <button class="temperature-scale-selector__button temperature-scale-selector__button--active">120°</button>
+                <button class="temperature-scale-selector__button">130°</button>
+                <button class="temperature-scale-selector__button">140°</button>
+                <button class="temperature-scale-selector__button">150°</button>
+            </div>
+
+            <section class="components-section">
+                <h2 class="components-section__title">Main Components:</h2>
+                
+                <div class="report-card component-item">
+                    <div class="component-item__icon">
+                        <!-- Simple Thermometer-like SVG Icon -->
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 12.5C12.8284 12.5 13.5 11.8284 13.5 11C13.5 10.1716 12.8284 9.5 12 9.5C11.1716 9.5 10.5 10.1716 10.5 11C10.5 11.8284 11.1716 12.5 12 12.5Z" fill="#4B5563"/>
+                            <path d="M15 6.5H9V3.75C9 3.33579 9.33579 3 9.75 3H14.25C14.6642 3 15 3.33579 15 3.75V6.5ZM12 18C14.2091 18 16 16.2091 16 14H8C8 16.2091 9.79086 18 12 18Z" fill="#4B5563"/>
+                            <rect x="10" y="6" width="4" height="6" rx="1" fill="#4B5563"/>
+                        </svg>
+                    </div>
+                    <div class="component-item__details">
+                        <h3 class="component-item__name">Thermostat</h3>
+                        <p class="component-item__description">Heat output oven</p>
+                    </div>
+                    <div class="component-item__value">0.92 watt</div>
+                </div>
+
+                <!-- Example of another component item (structure only) -->
+                <div class="report-card component-item" style="margin-top: 12px;"> <!-- Added margin for separation -->
+                    <div class="component-item__icon">
+                         <!-- Placeholder for Oven Gravity icon -->
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM12 4C16.4183 4 20 7.58172 20 12H4C4 7.58172 7.58172 4 12 4ZM12 20C9.24076 20 6.80448 18.5015 5.25023 16.25M12 20C14.7592 20 17.1955 18.5015 18.7498 16.25M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14Z" stroke="#4B5563" stroke-width="1.5"/>
+                        </svg>
+                    </div>
+                    <div class="component-item__details">
+                        <h3 class="component-item__name">Oven gravity</h3>
+                        <p class="component-item__description">Help retain heat.</p>
+                    </div>
+                    <div class="component-item__value">0.48 watt</div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+</body>
+</html>
