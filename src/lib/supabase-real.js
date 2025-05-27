@@ -291,10 +291,13 @@ class SupabaseDBManager {
 
   async signOut() {
     try {
+      console.log('SignOut called, current user:', this.currentUser)
       this.currentUser = null
       localStorage.removeItem('timeTracker_currentUser')
+      console.log('User cleared, localStorage cleared')
       return { error: null }
     } catch (error) {
+      console.error('Error in signOut:', error)
       return { error }
     }
   }

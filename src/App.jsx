@@ -126,12 +126,22 @@ function App() {
   const handleSignOut = async () => {
     console.log('Sign out button clicked!')
     try {
-      await timeTrackerAPI.signOut()
-      setUser(null)
-      setCurrentView('timer')
-      console.log('Sign out successful')
+      const result = await timeTrackerAPI.signOut()
+      console.log('Sign out result:', result)
+      
+      if (result && result.error) {
+        console.error('Sign out error:', result.error)
+        alert('Error signing out: ' + (result.error.message || 'Unknown error'))
+      } else {
+        setUser(null)
+        setCurrentView('timer')
+        console.log('Sign out successful')
+        // Force a page reload to ensure complete logout
+        window.location.reload()
+      }
     } catch (error) {
       console.error('Error signing out:', error)
+      alert('Error signing out: ' + error.message)
     }
   }
 
@@ -238,7 +248,18 @@ function App() {
                     Clear Data
                   </button>
                 )}
-                <button onClick={handleSignOut} className="btn btn-outline">
+                <button 
+                  onClick={handleSignOut} 
+                  className="btn btn-outline"
+                  onTouchStart={(e) => {
+                    console.log('Sign out button touched')
+                    e.stopPropagation()
+                  }}
+                  onTouchEnd={(e) => {
+                    console.log('Sign out button touch ended')
+                    e.stopPropagation()
+                  }}
+                >
                   <LogOut size={16} />
                   Sign Out
                 </button>

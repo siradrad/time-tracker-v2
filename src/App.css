@@ -310,6 +310,8 @@ body {
   background: transparent;
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border);
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1); /* Slight highlight on tap */
+  user-select: none; /* Prevent text selection on double tap */
 }
 
 .btn-outline:hover {
@@ -772,4 +774,15 @@ body {
   z-index: 100;
   pointer-events: auto;
   touch-action: manipulation;
+}
+
+/* Ensure buttons are interactive on iOS */
+@supports (-webkit-touch-callout: none) {
+  .btn {
+    cursor: pointer;
+  }
+  
+  .header-right button {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  }
 } 
