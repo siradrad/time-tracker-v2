@@ -489,34 +489,43 @@ body {
   }
   
   .nav-list {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-gap: 0.5rem;
-    padding: 0.5rem;
-    overflow: visible;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-gap: 0.5rem !important;
+    padding: 0.5rem !important;
+    overflow: visible !important;
     /* Remove scroll-related styles */
-    overflow-x: visible;
-    overflow-y: visible;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
     scrollbar-width: auto;
     -ms-overflow-style: auto;
-    height: auto;
-    width: 100%;
+    height: auto !important;
+    width: 100% !important;
+    /* Reset any flex properties */
+    flex-direction: unset !important;
+    min-width: unset !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    /* Remove list styles */
+    list-style: none !important;
   }
   
-  .nav-list::-webkit-scrollbar {
-    display: auto;
+  .nav-list li {
+    display: block !important;
+    width: 100% !important;
+    list-style: none !important;
   }
   
   .nav-button {
     /* Remove flex-shrink since we're using grid */
     /* Adjust padding for grid layout */
-    padding: 0.75rem;
+    padding: 0.75rem !important;
     border-radius: var(--border-radius-md);
     white-space: nowrap;
-    width: 100%;
+    width: 100% !important;
     justify-content: center;
     font-size: 0.75rem;
-    margin: 0;
+    margin: 0 !important;
     /* Remove min-width constraint */
     min-width: unset;
     /* Ensure text doesn't wrap */
@@ -528,6 +537,8 @@ body {
     z-index: 10;
     pointer-events: auto;
     touch-action: manipulation;
+    /* Override desktop button width calculation */
+    box-sizing: border-box !important;
   }
   
   .nav-button svg {
