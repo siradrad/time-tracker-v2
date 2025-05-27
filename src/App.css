@@ -491,8 +491,8 @@ body {
   .nav-list {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
-    grid-gap: 0.5rem !important;
-    padding: 0.5rem !important;
+    grid-gap: 0.75rem !important;
+    padding: 0.75rem !important;
     overflow: visible !important;
     /* Remove scroll-related styles */
     overflow-x: visible !important;
@@ -508,18 +508,23 @@ body {
     margin: 0 !important;
     /* Remove list styles */
     list-style: none !important;
+    /* Ensure grid items don't overlap */
+    grid-auto-rows: minmax(44px, auto);
   }
   
   .nav-list li {
     display: block !important;
     width: 100% !important;
     list-style: none !important;
+    /* Prevent layout overflow */
+    contain: layout style;
+    isolation: isolate;
   }
   
   .nav-button {
     /* Remove flex-shrink since we're using grid */
     /* Adjust padding for grid layout */
-    padding: 0.75rem !important;
+    padding: 0.5rem !important;
     border-radius: var(--border-radius-md);
     white-space: nowrap;
     width: 100% !important;
@@ -531,7 +536,7 @@ body {
     /* Ensure text doesn't wrap */
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.3rem;
     /* Ensure buttons are clickable */
     position: relative;
     z-index: 10;
@@ -539,6 +544,10 @@ body {
     touch-action: manipulation;
     /* Override desktop button width calculation */
     box-sizing: border-box !important;
+    /* Prevent touch event bleeding */
+    isolation: isolate;
+    /* Ensure no overflow */
+    overflow: hidden;
   }
   
   .nav-button svg {
@@ -550,6 +559,9 @@ body {
   .nav-button span {
     overflow: hidden;
     text-overflow: ellipsis;
+    /* Ensure text stays within button bounds */
+    max-width: 100%;
+    display: block;
   }
   
   .nav-button.active {
@@ -570,6 +582,30 @@ body {
     overflow-x: hidden;
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Specific fix for Job Addresses button on mobile */
+@media (max-width: 768px) {
+  .nav-button[data-nav-id="addresses"] span {
+    /* Shorter text for Job Addresses on mobile */
+    font-size: 0.7rem;
+  }
+  
+  /* Ensure all nav buttons have consistent touch targets */
+  .nav-button {
+    min-height: 44px !important;
+    /* Prevent any button from expanding beyond its grid cell */
+    max-width: 100% !important;
+    /* Add a subtle border to visualize button boundaries during testing */
+    border: 1px solid transparent;
+    transition: border-color 0.2s ease;
+  }
+  
+  .nav-button:active {
+    /* Visual feedback on touch */
+    border-color: var(--color-accent);
+    transform: scale(0.98);
   }
 }
 

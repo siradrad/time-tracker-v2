@@ -48,10 +48,10 @@ function App() {
         return
       }
       
-      // Check if we're in a horizontally scrollable area (navigation)
-      const isInHorizontalScroll = target.closest('.nav-list')
-      if (isInHorizontalScroll) {
-        // Allow horizontal scrolling in navigation
+      // Check if we're in the navigation area
+      const isInNavigation = target.closest('.nav-list') || target.closest('.nav-button')
+      if (isInNavigation) {
+        // Don't interfere with navigation button touches
         return
       }
       
@@ -297,6 +297,7 @@ function App() {
                           setCurrentView(item.id)
                         }}
                         className={`nav-button ${currentView === item.id ? 'active' : ''}`}
+                        data-nav-id={item.id}
                       >
                         <Icon size={20} />
                         <span>{item.label}</span>
