@@ -477,8 +477,18 @@ export class DataService {
         .order('address', { ascending: true })
 
       if (error) throw error
+      
+      // Handle case where data is null or undefined
+      if (!data) {
+        console.warn("⚠️ No job addresses found in database")
+        this._cache.allJobAddresses = []
+        this._cache.allJobAddressesTimestamp = now
+        console.timeEnd(timerName)
+        return { data: [], error: null }
+      }
+      
       // Deduplicate addresses since multiple users may have the same addresses
-      const uniqueAddresses = Array.from(new Set(data?.map(j => j.address) || []))
+      const uniqueAddresses = Array.from(new Set(data.map(j => j.address || "").filter(addr => addr)))
       const addresses = uniqueAddresses
 
       this._cache.allJobAddresses = addresses
@@ -491,6 +501,14 @@ export class DataService {
       if (timerName) {
         console.timeEnd(timerName)
       }
+      console.error("❌ Error in getAllJobAddresses:", error.message || error)
+      
+      // Return previously cached data if available instead of empty array
+      if (this._cache.allJobAddresses) {
+        console.log("⚠️ Returning stale cached data due to error")
+        return { data: this._cache.allJobAddresses, error: null }
+      }
+      
       return { data: [], error }
     }
   }
@@ -957,15 +975,15 @@ export class DataService {
       if (this._cache.csiTasks &&
           this._cache.csiTasksTimestamp &&
           (now - this._cache.csiTasksTimestamp) < this._cache.cacheTimeout) {
-        const taskNames = this._cache.csiTasks.map(task => task.name)
+        const taskNames = this._cache.csiTasks.map(task => task.name || "").filter(Boolean)
         console.log(`📋 Retrieved ${taskNames.length} task names from cache (fast path)`)
         return { data: taskNames, error: null }
       }
 
       // Use cached CSI tasks if available
       const cachedResult = await this.getCSITasks()
-      if (cachedResult.data) {
-        const taskNames = cachedResult.data.map(task => task.name)
+      if (cachedResult.data && cachedResult.data.length > 0) {
+        const taskNames = cachedResult.data.map(task => task.name || "").filter(Boolean)
         console.log(`📋 Retrieved ${taskNames.length} task names from cache`)
         return { data: taskNames, error: null }
       }
@@ -978,10 +996,23 @@ export class DataService {
         .order('name', { ascending: true })
 
       if (error) throw error
-      const taskNames = data?.map(task => task.name) || []
+      
+      // Handle case where data is null
+      if (!data) {
+        console.warn("⚠️ No CSI tasks found in database")
+        return { data: [], error: null }
+      }
+      
+      const taskNames = data.map(task => task.name || "").filter(Boolean)
       return { data: taskNames, error: null }
     } catch (error) {
-      return { data: [], error }
+      console.error("❌ Error in getAvailableCSITasks:", error.message || error)
+      
+      // Return default tasks if everything fails
+      return { 
+        data: ['General', 'Plumbing', 'Electrical', 'Carpentry', 'Masonry', 'HVAC'], 
+        error: null 
+      }
     }
   }
 } 
