@@ -22,6 +22,37 @@ function App() {
 
   useEffect(() => {
     checkUser()
+    
+    // Prevent pull-to-refresh on mobile devices
+    let lastTouchY = 0
+    let preventPullToRefresh = false
+    
+    const handleTouchStart = (e) => {
+      if (e.touches.length === 1) {
+        lastTouchY = e.touches[0].clientY
+        preventPullToRefresh = window.pageYOffset === 0
+      }
+    }
+    
+    const handleTouchMove = (e) => {
+      const touchY = e.touches[0].clientY
+      const touchYDelta = touchY - lastTouchY
+      lastTouchY = touchY
+      
+      if (preventPullToRefresh && touchYDelta > 0) {
+        e.preventDefault()
+      }
+    }
+    
+    // Add event listeners with { passive: false } to allow preventDefault
+    document.addEventListener('touchstart', handleTouchStart, { passive: false })
+    document.addEventListener('touchmove', handleTouchMove, { passive: false })
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart)
+      document.removeEventListener('touchmove', handleTouchMove)
+    }
   }, [])
 
   useEffect(() => {
@@ -37,7 +68,7 @@ function App() {
 
   const checkUser = async () => {
     try {
-      const currentUser = await timeTrackerAPI.getCurrentUser()
+      const currentUser = await timeTrackerAPI.restoreSession()
       setUser(currentUser)
     } catch (error) {
       console.error('Error checking user:', error)

@@ -56,10 +56,10 @@ function Login({ onLogin }) {
         <div className="login-header">
           <div className="login-logo">
             <Clock size={48} className="logo-icon" />
-            <h1>Time Tracker V2</h1>
+            <h1>Welcome</h1>
           </div>
           <p className="login-subtitle">
-            Track your time efficiently with our improved Supabase system
+            Payroll and Job Cost Optimizer
           </p>
         </div>
         <div className="login-form-container">

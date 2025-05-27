@@ -19,21 +19,30 @@ class SupabaseDBManager {
 
   async _loadCurrentUser() {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        // Get user details from our users table
-        const { data: userData } = await supabase
+      // Load user from localStorage
+      const storedUser = localStorage.getItem('timeTracker_currentUser')
+      if (storedUser) {
+        const user = JSON.parse(storedUser)
+        
+        // Verify user still exists in database
+        const { data: userData, error } = await supabase
           .from(TABLES.USERS)
           .select('*')
-          .eq('id', session.user.id)
+          .eq('id', user.id)
           .single()
         
-        if (userData) {
+        if (userData && !error) {
           this.currentUser = userData
+          console.log('✅ User session restored:', userData.name)
+        } else {
+          // User no longer exists or error occurred, clear localStorage
+          localStorage.removeItem('timeTracker_currentUser')
+          console.log('⚠️ Stored user session invalid, cleared')
         }
       }
     } catch (error) {
       console.error('Error loading current user:', error)
+      localStorage.removeItem('timeTracker_currentUser')
     }
   }
 
@@ -292,6 +301,43 @@ class SupabaseDBManager {
 
   async getCurrentUser() {
     return this.currentUser
+  }
+
+  async restoreSession() {
+    // If current user already exists, return it
+    if (this.currentUser) {
+      return this.currentUser
+    }
+    
+    try {
+      // Load user from localStorage
+      const storedUser = localStorage.getItem('timeTracker_currentUser')
+      if (storedUser) {
+        const user = JSON.parse(storedUser)
+        
+        // Verify user still exists in database
+        const { data: userData, error } = await supabase
+          .from(TABLES.USERS)
+          .select('*')
+          .eq('id', user.id)
+          .single()
+        
+        if (userData && !error) {
+          this.currentUser = userData
+          console.log('✅ Session restored for:', userData.name)
+          return userData
+        } else {
+          // User no longer exists or error occurred, clear localStorage
+          localStorage.removeItem('timeTracker_currentUser')
+          console.log('⚠️ Stored session invalid, cleared')
+        }
+      }
+    } catch (error) {
+      console.error('Error restoring session:', error)
+      localStorage.removeItem('timeTracker_currentUser')
+    }
+    
+    return null
   }
 
   async getJobAddresses(userId) {
@@ -894,6 +940,7 @@ export const timeTrackerAPI = {
   signIn: (username, password) => dbManager.signIn(username, password),
   signOut: () => dbManager.signOut(),
   getCurrentUser: () => dbManager.getCurrentUser(),
+  restoreSession: () => dbManager.restoreSession(),
   getJobAddresses: (userId) => dbManager.getJobAddresses(userId),
   addJobAddress: (userId, address) => dbManager.addJobAddress(userId, address),
   deleteJobAddress: (userId, addressId) => dbManager.deleteJobAddress(userId, addressId),

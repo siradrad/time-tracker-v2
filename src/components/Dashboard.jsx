@@ -129,8 +129,9 @@ function Dashboard({ user }) {
   }, [user.role, allTimeEntries.length, jobOptions.length, taskOptions.length, workerOptions.length])
 
   const loadDashboardData = async (forceRefresh = false) => {
+    let timerName = null
     try {
-      const timerName = `Dashboard loadDashboardData execution ${Date.now()}`
+      timerName = `Dashboard loadDashboardData execution ${Date.now()}`
       console.time(timerName)
       setLoading(true)
       setError('')
@@ -154,7 +155,10 @@ function Dashboard({ user }) {
     } catch (err) {
       setError('Failed to load dashboard data')
       console.error('❌ Error loading dashboard:', err)
-      // Timer already ended in success path, don't end again
+      // End the timer if it was started
+      if (timerName) {
+        console.timeEnd(timerName)
+      }
     } finally {
       setLoading(false)
     }
