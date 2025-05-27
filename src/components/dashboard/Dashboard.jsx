@@ -5,7 +5,10 @@ import UserDashboard from './UserDashboard/UserDashboard'
 import LoadingState from './Shared/LoadingState'
 import ErrorState from './Shared/ErrorState'
 import TimeEntryModal from '../TimeEntryModal.jsx'
+import ReportingModal from './Reporting/ReportingModal'
 import AddUser from '../AddUser.jsx'
+import './dashboard.css'
+import { BarChart3 } from 'lucide-react'
 
 /**
  * Dashboard is the main component that displays either the admin or user dashboard
@@ -25,12 +28,18 @@ const Dashboard = ({ user }) => {
   // State for modals
   const [showAddUser, setShowAddUser] = useState(false)
   const [showTimeEntryModal, setShowTimeEntryModal] = useState(false)
+  const [showReporting, setShowReporting] = useState(false)
   const [modalMode, setModalMode] = useState('add') // 'add' or 'edit'
   const [modalEntry, setModalEntry] = useState(null)
   
   // State for dropdown data
   const [allJobs, setAllJobs] = useState([])
   const [allTasks, setAllTasks] = useState([])
+  
+  // State for report options
+  const [jobOptions, setJobOptions] = useState([])
+  const [taskOptions, setTaskOptions] = useState([])
+  const [workerOptions, setWorkerOptions] = useState([])
 
   // Load dashboard data on component mount and when user changes
   useEffect(() => {
@@ -74,6 +83,48 @@ const Dashboard = ({ user }) => {
       isMounted = false
     }
   }, [user.id, user.role])
+
+  // Process report options when time entries change
+  useEffect(() => {
+    // Only process options when we have time entries and user is admin
+    // Use a more efficient check to prevent unnecessary re-processing
+    if (user.role === 'admin' && allTimeEntries.length > 0) {
+      // Only process if we don't have options yet or if the data has significantly changed
+      const shouldProcess = jobOptions.length === 0 || taskOptions.length === 0 || workerOptions.length === 0
+      
+      if (shouldProcess) {
+        console.log(`🔄 Processing ${allTimeEntries.length} entries for dropdown options...`)
+        const startTime = Date.now()
+        
+        // Jobs: aggregate from all time entries, but filter out break/travel types
+        const EXCLUDE_JOBS = [
+          'Break/Lunch', 'Break/Lunch Time', 'Travel', 'Travel Time'
+        ]
+        const uniqueJobs = Array.from(new Set(
+          allTimeEntries
+            .map(e => e.job_address)
+            .filter(addr => addr && !EXCLUDE_JOBS.includes(addr))
+        ))
+        setJobOptions(uniqueJobs.map(addr => ({ value: addr, label: addr })))
+        
+        // Tasks: aggregate from all time entries
+        const uniqueTasks = Array.from(new Set(allTimeEntries.map(e => e.csi_division).filter(Boolean)))
+        setTaskOptions(uniqueTasks.map(task => ({ value: task, label: task })))
+        
+        // Workers: aggregate from all time entries
+        const workerMap = {}
+        allTimeEntries.forEach(e => {
+          if (e.user_id && e.user_name) {
+            workerMap[e.user_id] = e.user_name
+          }
+        })
+        setWorkerOptions(Object.entries(workerMap).map(([id, name]) => ({ value: id, label: name })))
+        
+        const processTime = Date.now() - startTime
+        console.log(`✅ Processed options in ${processTime}ms: ${uniqueJobs.length} jobs, ${uniqueTasks.length} tasks, ${Object.keys(workerMap).length} workers`)
+      }
+    }
+  }, [user.role, allTimeEntries.length, jobOptions.length, taskOptions.length, workerOptions.length])
 
   // Load dashboard data based on user role
   const loadDashboardData = async (forceRefresh = false) => {
@@ -198,6 +249,135 @@ const Dashboard = ({ user }) => {
     }
   }
 
+  // Handler for running reports
+  const handleRunReport = (reportConfig) => {
+    try {
+      let filtered = allTimeEntries
+      
+      if (reportConfig.startDate) filtered = filtered.filter(e => new Date(e.date) >= new Date(reportConfig.startDate))
+      if (reportConfig.endDate) filtered = filtered.filter(e => new Date(e.date) <= new Date(reportConfig.endDate))
+      if (reportConfig.jobs.length > 0) filtered = filtered.filter(e => reportConfig.jobs.includes(e.job_address))
+      if (reportConfig.tasks.length > 0) filtered = filtered.filter(e => reportConfig.tasks.includes(e.csi_division))
+      if (reportConfig.workers.length > 0) {
+        filtered = filtered.filter(e => reportConfig.workers.includes(e.user_id))
+      }
+
+      // Use explicit "Select All" flags to determine aggregation
+      // Only aggregate if "Select All" was explicitly clicked
+      
+      // Build grouping key based on explicit "Select All" selections
+      const groupBy = []
+      if (!reportConfig.selectAllJobs) groupBy.push('job_address')
+      if (!reportConfig.selectAllTasks) groupBy.push('csi_division')
+      if (!reportConfig.selectAllWorkers) groupBy.push('user_id')
+      groupBy.push('date') // Always group by date for clarity
+
+      let results = []
+      let headers = ['Date']
+      if (!reportConfig.selectAllJobs) headers.push('Job')
+      if (!reportConfig.selectAllTasks) headers.push('Task')
+      if (!reportConfig.selectAllWorkers) headers.push('Worker')
+      headers.push('Hours')
+
+      if (groupBy.length === 1 && groupBy[0] === 'date') {
+        // All filters are 'all', aggregate everything
+        const totalHours = filtered.reduce((sum, e) => sum + (e.duration / 3600), 0)
+        results = [{ id: 1, date: 'All', hours: totalHours.toFixed(2) }]
+      } else if (groupBy.length === 4) {
+        // All are partial, show detailed (one row per entry)
+        results = filtered.map((e, i) => ({
+          id: e.id || i,
+          date: e.date || new Date(e.created_at).toISOString().split('T')[0],
+          job: e.job_address || 'N/A',
+          task: e.csi_division || 'N/A',
+          worker: e.user_name || 'Unknown',
+          hours: (e.duration / 3600).toFixed(2)
+        }))
+      } else {
+        // Group by the selected fields
+        const groupMap = {}
+        filtered.forEach(e => {
+          const keyParts = []
+          if (!reportConfig.selectAllJobs) keyParts.push(e.job_address || 'N/A')
+          if (!reportConfig.selectAllTasks) keyParts.push(e.csi_division || 'N/A')
+          if (!reportConfig.selectAllWorkers) keyParts.push(e.user_name || 'Unknown')
+          keyParts.push(e.date || new Date(e.created_at).toISOString().split('T')[0])
+          const key = keyParts.join('|')
+          if (!groupMap[key]) {
+            const row = { date: e.date || new Date(e.created_at).toISOString().split('T')[0] }
+            if (!reportConfig.selectAllJobs) row.job = e.job_address || 'N/A'
+            if (!reportConfig.selectAllTasks) row.task = e.csi_division || 'N/A'
+            if (!reportConfig.selectAllWorkers) row.worker = e.user_name || 'Unknown'
+            row.hours = 0
+            groupMap[key] = row
+          }
+          groupMap[key].hours += (e.duration / 3600)
+        })
+        results = Object.values(groupMap).map((row, i) => ({ ...row, id: i, hours: row.hours.toFixed(2) }))
+      }
+
+      if (reportConfig.reportStyle === 'cards') {
+        openCardReportTab(filtered, { 
+          selectAllJobs: reportConfig.selectAllJobs, 
+          selectAllTasks: reportConfig.selectAllTasks, 
+          selectAllWorkers: reportConfig.selectAllWorkers 
+        })
+      } else {
+        openTableReportTab(results, headers)
+      }
+    } catch (error) {
+      console.error('Report generation error:', error)
+      alert('Error generating report: ' + error.message)
+    }
+  }
+
+  const openTableReportTab = (data, headers) => {
+    const reportData = {
+      results: data,
+      headers: headers,
+      style: 'table'
+    }
+    
+    // Store data in sessionStorage instead of URL parameters
+    const reportId = 'report_' + Date.now()
+    sessionStorage.setItem(reportId, JSON.stringify(reportData))
+    
+    const url = `/report?id=${reportId}`
+    window.open(url, '_blank')
+  }
+
+  const openCardReportTab = (filteredData, groupingFlags) => {
+    // Group data by Date → Worker → Job → Tasks
+    const groupedData = {}
+    
+    filteredData.forEach(entry => {
+      const date = entry.date || new Date(entry.created_at).toISOString().split('T')[0]
+      const worker = entry.user_name || 'Unknown'
+      const job = entry.job_address || 'N/A'
+      const task = entry.csi_division || 'N/A'
+      const hours = entry.duration / 3600
+
+      if (!groupedData[date]) groupedData[date] = {}
+      if (!groupedData[date][worker]) groupedData[date][worker] = {}
+      if (!groupedData[date][worker][job]) groupedData[date][worker][job] = {}
+      if (!groupedData[date][worker][job][task]) groupedData[date][worker][job][task] = 0
+      
+      groupedData[date][worker][job][task] += hours
+    })
+
+    const reportData = {
+      groupedData: groupedData,
+      style: 'cards'
+    }
+    
+    // Store data in sessionStorage instead of URL parameters
+    const reportId = 'report_' + Date.now()
+    sessionStorage.setItem(reportId, JSON.stringify(reportData))
+    
+    const url = `/report?id=${reportId}`
+    window.open(url, '_blank')
+  }
+
   // Show loading state if data is still loading
   if (loading) {
     return (
@@ -226,6 +406,7 @@ const Dashboard = ({ user }) => {
     )
   }
 
+  // Render dashboards and modals
   return (
     <>
       {/* Admin Dashboard */}
@@ -238,6 +419,7 @@ const Dashboard = ({ user }) => {
           onEditEntry={handleEditEntry}
           onDeleteEntry={handleDeleteEntry}
           onAddEntry={handleAddEntry}
+          onShowReporting={() => setShowReporting(true)}
         />
       )}
       
@@ -271,6 +453,19 @@ const Dashboard = ({ user }) => {
           allJobs={allJobs}
           allTasks={allTasks}
           allUsersData={allUsersData}
+        />
+      )}
+      
+      {/* Reporting Modal */}
+      {showReporting && (
+        <ReportingModal
+          isOpen={showReporting}
+          onClose={() => setShowReporting(false)}
+          allTimeEntries={allTimeEntries}
+          onRunReport={handleRunReport}
+          jobOptions={jobOptions}
+          taskOptions={taskOptions}
+          workerOptions={workerOptions}
         />
       )}
     </>

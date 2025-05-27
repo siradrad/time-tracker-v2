@@ -2,7 +2,7 @@ import React from 'react'
 import AdminStats from './AdminStats'
 import UserList from './UserList'
 import TimeEntriesList from './TimeEntriesList'
-import { Plus } from 'lucide-react'
+import { Plus, BarChart3 } from 'lucide-react'
 
 /**
  * AdminDashboard displays the admin view of the dashboard
@@ -14,6 +14,7 @@ import { Plus } from 'lucide-react'
  * @param {Function} props.onEditEntry - Callback for editing an entry
  * @param {Function} props.onDeleteEntry - Callback for deleting an entry
  * @param {Function} props.onAddEntry - Callback for adding a new entry
+ * @param {Function} props.onShowReporting - Callback to show reporting modal
  */
 const AdminDashboard = ({ 
   user,
@@ -22,13 +23,22 @@ const AdminDashboard = ({
   onShowAddUser,
   onEditEntry,
   onDeleteEntry,
-  onAddEntry
+  onAddEntry,
+  onShowReporting
 }) => {
   return (
     <div className="admin-dashboard-container">
       <div className="dashboard-header">
         <h2>Admin Dashboard</h2>
         <div className="dashboard-actions">
+          <button 
+            onClick={onShowReporting} 
+            className="add-entry-button"
+            style={{ marginRight: '10px' }}
+          >
+            <BarChart3 size={16} />
+            <span>Run Report</span>
+          </button>
           <button 
             onClick={onAddEntry} 
             className="add-entry-button"

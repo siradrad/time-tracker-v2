@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { BarChart3, X, FileText, Table, Calendar } from 'lucide-react'
-import '../../dashboard/dashboard.css'
+import '../dashboard.css'
 
 /**
  * ReportingModal component displays reporting options and filters
