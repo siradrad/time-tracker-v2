@@ -205,39 +205,14 @@ function Dashboard({ user }) {
         if (res.error) throw res.error
         setAllTimeEntries(prev => [res.data[0], ...prev])
       } else if (modalMode === 'edit' && modalEntry) {
-        const originalUserId = modalEntry.user_id
-        const newUserId = entryData.user_id
-        
-        // Check if user is being changed (admin only)
-        if (user.role === 'admin' && originalUserId !== newUserId) {
-          // User is being changed - delete old entry and create new one
-          console.log(`🔄 Moving entry from user ${originalUserId} to user ${newUserId}`)
-          
-          // Delete the original entry
-          const deleteRes = await timeTrackerAPI.deleteTimeEntry(originalUserId, modalEntry.id)
-          if (deleteRes.error) throw deleteRes.error
-          
-          // Create new entry with the new user
-          const createRes = await timeTrackerAPI.addTimeEntry(newUserId, entryData)
-          if (createRes.error) throw createRes.error
-          
-          // Update the local state - remove old entry and add new one
-          setAllTimeEntries(prev => {
-            const filtered = prev.filter(entry => entry.id !== modalEntry.id)
-            return [createRes.data[0], ...filtered]
-          })
-        } else {
-          // Normal edit - same user
-          const res = await timeTrackerAPI.editTimeEntry(originalUserId, modalEntry.id, entryData)
-          if (res.error) throw res.error
-          setAllTimeEntries(prev => prev.map(entry => entry.id === modalEntry.id ? { ...entry, ...entryData, updated_at: new Date().toISOString() } : entry))
-        }
+        const res = await timeTrackerAPI.editTimeEntry(modalEntry.user_id, modalEntry.id, entryData)
+        if (res.error) throw res.error
+        setAllTimeEntries(prev => prev.map(entry => entry.id === modalEntry.id ? { ...entry, ...entryData, updated_at: new Date().toISOString() } : entry))
       }
       setShowTimeEntryModal(false)
       setModalEntry(null)
     } catch (err) {
       setError('Failed to save time entry: ' + (err.message || err))
-      console.error('Error in handleSaveTimeEntry:', err)
     }
   }
 

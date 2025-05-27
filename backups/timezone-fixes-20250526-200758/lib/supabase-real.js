@@ -347,8 +347,7 @@ class SupabaseDBManager {
         .from(TABLES.TIME_ENTRIES)
         .select('*')
         .eq('user_id', userId)
-        .order('date', { ascending: false })
-        .order('start_time', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(limit)
 
       if (error) throw error
@@ -446,8 +445,7 @@ class SupabaseDBManager {
             role
           )
         `)
-        .order('date', { ascending: false })
-        .order('start_time', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(limit)
 
       if (error) throw error
@@ -499,7 +497,6 @@ class SupabaseDBManager {
   }
 
   async getAllUsersData(forceRefresh = false) {
-    let timerName = null
     try {
       // Check cache first (unless force refresh is requested)
       const now = Date.now()
@@ -511,7 +508,7 @@ class SupabaseDBManager {
         return this._cache.allUsersData
       }
 
-      timerName = `getAllUsersData execution ${Date.now()}`
+      const timerName = `getAllUsersData execution ${Date.now()}`
       console.time(timerName)
       console.log("🔄 Cache miss or expired, fetching fresh data...")
 
@@ -608,10 +605,7 @@ class SupabaseDBManager {
       return allData
     } catch (error) {
       console.error('Error getting all users data:', error)
-      // End the timer if it was started
-      if (timerName) {
-        console.timeEnd(timerName)
-      }
+      // Timer already ended in success path, don't end again
       return {}
     }
   }
@@ -663,7 +657,6 @@ class SupabaseDBManager {
   }
 
   async getCSITasks(forceRefresh = false) {
-    let timerName = null
     try {
       // Check cache first (unless force refresh is requested)
       const now = Date.now()
@@ -675,7 +668,7 @@ class SupabaseDBManager {
         return { data: this._cache.csiTasks, error: null }
       }
 
-      timerName = `getCSITasks execution ${Date.now()}`
+      const timerName = `getCSITasks execution ${Date.now()}`
       console.time(timerName)
       console.log("🔄 Cache miss or expired, fetching fresh CSI tasks...")
       
@@ -728,10 +721,6 @@ class SupabaseDBManager {
       return { data: tasksWithStats, error: null }
     } catch (error) {
       console.error('❌ Error in getCSITasks:', error)
-      // End the timer if it was started
-      if (timerName) {
-        console.timeEnd(timerName)
-      }
       return { data: [], error }
     }
   }
@@ -845,7 +834,6 @@ class SupabaseDBManager {
   }
 
   async getAllJobAddresses(forceRefresh = false) {
-    let timerName = null
     try {
       // Check cache first (unless force refresh is requested)
       const now = Date.now()
@@ -857,7 +845,7 @@ class SupabaseDBManager {
         return { data: this._cache.allJobAddresses, error: null }
       }
 
-      timerName = `getAllJobAddresses execution ${Date.now()}`
+      const timerName = `getAllJobAddresses execution ${Date.now()}`
       console.time(timerName)
       console.log("🔄 Cache miss or expired for allJobAddresses, fetching fresh data...")
 
@@ -877,10 +865,6 @@ class SupabaseDBManager {
       console.log(`💾 All job addresses cached for ${this._cache.cacheTimeout / 1000} seconds (${addresses.length} unique addresses)`)
       return { data: addresses, error: null }
     } catch (error) {
-      // End the timer if it was started
-      if (timerName) {
-        console.timeEnd(timerName)
-      }
       return { data: [], error }
     }
   }

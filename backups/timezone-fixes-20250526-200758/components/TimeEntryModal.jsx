@@ -13,7 +13,7 @@ export default function TimeEntryModal({
   currentUser,
 }) {
   const [userId, setUserId] = useState((entry && entry.user_id) || (users[0] && users[0].id) || '');
-  const [date, setDate] = useState((entry && entry.date) || new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState((entry && entry.date) || '');
   const [startTime, setStartTime] = useState((entry && entry.start_time) ? new Date(entry.start_time).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }) : '');
   const [endTime, setEndTime] = useState((entry && entry.end_time) ? new Date(entry.end_time).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }) : '');
   const [jobAddress, setJobAddress] = useState((entry && entry.job_address) || (jobs[0] && jobs[0].address) || '');
@@ -24,7 +24,7 @@ export default function TimeEntryModal({
   useEffect(() => {
     if (isOpen) {
       setUserId((entry && entry.user_id) || (users[0] && users[0].id) || '');
-      setDate((entry && entry.date) || new Date().toISOString().split('T')[0]);
+      setDate((entry && entry.date) || '');
       setStartTime((entry && entry.start_time) ? new Date(entry.start_time).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }) : '');
       setEndTime((entry && entry.end_time) ? new Date(entry.end_time).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }) : '');
       setJobAddress((entry && entry.job_address) || (jobs[0] && jobs[0].address) || '');
@@ -57,7 +57,7 @@ export default function TimeEntryModal({
     const startUTC = start.toISOString();
     const endUTC = end.toISOString();
     
-    const entryData = {
+    onSave({
       user_id: selectedUserId,
       date,
       startTime: startUTC,
@@ -66,12 +66,7 @@ export default function TimeEntryModal({
       jobAddress,
       task,
       notes: notes.trim(),
-    };
-    
-    console.log('💾 Saving time entry with data:', entryData);
-    console.log('📅 Date being saved:', date);
-    
-    onSave(entryData);
+    });
   };
 
   const handleBackgroundClick = (e) => {

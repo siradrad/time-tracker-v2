@@ -113,45 +113,16 @@ function TimeEntries({ user }) {
 
   const handleSaveEdit = async (updatedEntry) => {
     try {
-      const originalUserId = editingEntry.user_id
-      const newUserId = updatedEntry.user_id
-      
-      // Check if user is being changed (admin only)
-      if (user.role === 'admin' && originalUserId !== newUserId) {
-        // User is being changed - delete old entry and create new one
-        console.log(`🔄 Moving entry from user ${originalUserId} to user ${newUserId}`)
-        
-        // Delete the original entry
-        const deleteRes = await timeTrackerAPI.deleteTimeEntry(originalUserId, editingEntry.id)
-        if (deleteRes.error) throw deleteRes.error
-        
-        // Create new entry with the new user
-        const createRes = await timeTrackerAPI.addTimeEntry(newUserId, { 
-          ...updatedEntry, 
-          manual: editingEntry.manual || false 
-        })
-        if (createRes.error) throw createRes.error
-        
-        setSuccess('Time entry moved to new user!')
-      } else {
-        // Normal edit - same user
-        const entryUserId = user.role === 'admin' ? originalUserId : user.id
-        const res = await timeTrackerAPI.editTimeEntry(entryUserId, editingEntry.id, { 
-          ...updatedEntry, 
-          manual: editingEntry.manual || false 
-        })
-        if (res.error) throw res.error
-        
-        setSuccess('Time entry updated!')
-      }
-      
+      const entryUserId = user.role === 'admin' ? editingEntry.user_id : user.id
+      const res = await timeTrackerAPI.editTimeEntry(entryUserId, editingEntry.id, { ...updatedEntry, manual: editingEntry.manual || false })
+      if (res.error) throw res.error
       setShowTimeEntryModal(false)
       setEditingEntry(null)
+      setSuccess('Time entry updated!')
       setTimeout(() => setSuccess(''), 3000)
       await loadEntries()
     } catch (err) {
       setError('Failed to update time entry: ' + (err.message || err))
-      console.error('Error in handleSaveEdit:', err)
     }
   }
 
