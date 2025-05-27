@@ -10,11 +10,15 @@
     "preview": "vite preview",
     "deploy": "gh-pages -d dist"
   },
-  "homepage": "https://christopherddardaris.github.io/time-tracker-v2",
+  "homepage": "https://payroll-optimizer.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/siradrad/time-tracker-v2.git"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.2",
     "bcryptjs": "^2.4.3",
-    "date-fns": "^3.0.6",
+    "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.0",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.1",
