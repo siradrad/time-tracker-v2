@@ -35,22 +35,42 @@
   --spacing-unit: 0.25rem; /* 4px */
 }
 
-/* Prevent pull-to-refresh on mobile */
+/* Prevent pull-to-refresh on mobile - comprehensive fix */
+* {
+  /* Prevent overscroll on all elements */
+  overscroll-behavior: none;
+}
+
 html {
-  overscroll-behavior-y: contain;
+  overscroll-behavior: none;
   height: 100%;
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
 }
 
 body {
-  overscroll-behavior-y: contain;
+  overscroll-behavior: none;
   margin: 0;
   padding: 0;
   height: 100%;
   overflow: hidden;
-  /* Prevent iOS bounce scrolling */
   position: fixed;
   width: 100%;
+  top: 0;
+  left: 0;
   -webkit-overflow-scrolling: touch;
+  /* Prevent iOS rubber band scrolling */
+  -webkit-transform: translateZ(0);
+}
+
+#root {
+  height: 100%;
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
 }
 
 .app {
@@ -66,6 +86,9 @@ body {
   right: 0;
   bottom: 0;
   overflow: hidden;
+  /* Prevent any overscroll */
+  overscroll-behavior: none;
+  touch-action: pan-x pan-y;
 }
 
 /* Header */
@@ -75,10 +98,10 @@ body {
   padding: calc(var(--spacing-unit) * 4) calc(var(--spacing-unit) * 6); /* 1rem 1.5rem */
   border-bottom: 1px solid var(--color-border);
   width: 100%;
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
   position: relative;
   z-index: 10;
+  flex-shrink: 0;
 }
 
 .header-content {
@@ -157,9 +180,9 @@ body {
   display: flex;
   flex: 1;
   overflow: hidden;
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-x pan-y;
+  overscroll-behavior: none;
+  position: relative;
+  height: 100%;
 }
 
 /* Sidebar */
@@ -167,8 +190,9 @@ body {
   width: 240px;
   background: var(--color-surface);
   border-right: 1px solid var(--color-border);
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .nav-list {
@@ -212,7 +236,10 @@ body {
   flex: 1;
   padding: 2rem;
   overflow-y: auto;
+  overflow-x: hidden;
   background-color: var(--color-background-alt);
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Loading */
@@ -393,6 +420,9 @@ body {
   
   .app-body {
     flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
   }
   
   /* Header responsive adjustments */
@@ -433,40 +463,52 @@ body {
     height: auto;
     border-right: none;
     border-bottom: 1px solid var(--color-border);
-    flex-shrink: 0; /* Prevent sidebar from shrinking */
+    flex-shrink: 0;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+    overscroll-behavior: none;
     position: relative;
+    /* Make navigation smaller on mobile */
+    padding: 0.25rem 0;
   }
   
   .nav-list {
     display: flex;
-    flex-direction: row; /* Horizontal scroll on mobile */
+    flex-direction: row;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 0.5rem;
-    gap: 0.5rem;
+    padding: 0 0.5rem;
+    gap: 0.25rem;
     min-width: min-content;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    /* Reduce height */
+    height: auto;
   }
   
   .nav-list::-webkit-scrollbar {
-    display: none; /* Chrome/Safari/Opera */
+    display: none;
   }
   
   .nav-button {
     flex-shrink: 0;
-    padding: 0.75rem 1rem;
+    /* Significantly reduce padding and font size */
+    padding: 0.4rem 0.75rem;
     border-radius: var(--border-radius-md);
     white-space: nowrap;
     width: auto;
     justify-content: center;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     margin: 0;
     min-width: fit-content;
+    /* Reduce icon size */
+    gap: 0.4rem;
+  }
+  
+  .nav-button svg {
+    width: 16px;
+    height: 16px;
   }
   
   .nav-button.active {
@@ -490,7 +532,11 @@ body {
   .main-content {
     padding: 1rem;
     flex: 1;
-    min-height: 0; /* Allow content to shrink if needed */
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
   }
 }
 

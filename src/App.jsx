@@ -23,23 +23,43 @@ function App() {
   useEffect(() => {
     checkUser()
     
-    // Prevent pull-to-refresh on mobile devices
-    let lastTouchY = 0
-    let preventPullToRefresh = false
+    // Comprehensive pull-to-refresh prevention for mobile devices
+    let touchStartY = 0
+    let touchEndY = 0
     
     const handleTouchStart = (e) => {
-      if (e.touches.length === 1) {
-        lastTouchY = e.touches[0].clientY
-        preventPullToRefresh = window.pageYOffset === 0
-      }
+      touchStartY = e.touches[0].clientY
     }
     
     const handleTouchMove = (e) => {
-      const touchY = e.touches[0].clientY
-      const touchYDelta = touchY - lastTouchY
-      lastTouchY = touchY
+      touchEndY = e.touches[0].clientY
       
-      if (preventPullToRefresh && touchYDelta > 0) {
+      // Get all scrollable elements
+      const scrollableElements = [
+        ...e.composedPath().filter(el => {
+          if (!(el instanceof Element)) return false
+          const style = window.getComputedStyle(el)
+          return (
+            style.overflowY === 'auto' || 
+            style.overflowY === 'scroll' ||
+            el.classList.contains('main-content')
+          )
+        })
+      ]
+      
+      // If we're at the top of the page or any scrollable element
+      const atTop = scrollableElements.length === 0 || 
+        scrollableElements.every(el => el.scrollTop === 0)
+      
+      // Prevent pull-to-refresh if pulling down at the top
+      if (atTop && touchEndY > touchStartY) {
+        e.preventDefault()
+      }
+    }
+    
+    const handleTouchEnd = (e) => {
+      // Additional prevention on touch end
+      if (window.scrollY === 0 && touchEndY > touchStartY) {
         e.preventDefault()
       }
     }
@@ -47,11 +67,23 @@ function App() {
     // Add event listeners with { passive: false } to allow preventDefault
     document.addEventListener('touchstart', handleTouchStart, { passive: false })
     document.addEventListener('touchmove', handleTouchMove, { passive: false })
+    document.addEventListener('touchend', handleTouchEnd, { passive: false })
+    
+    // Also prevent any window scroll
+    const preventWindowScroll = (e) => {
+      if (window.scrollY !== 0) {
+        window.scrollTo(0, 0)
+      }
+    }
+    
+    window.addEventListener('scroll', preventWindowScroll)
     
     // Cleanup
     return () => {
       document.removeEventListener('touchstart', handleTouchStart)
       document.removeEventListener('touchmove', handleTouchMove)
+      document.removeEventListener('touchend', handleTouchEnd)
+      window.removeEventListener('scroll', preventWindowScroll)
     }
   }, [])
 
