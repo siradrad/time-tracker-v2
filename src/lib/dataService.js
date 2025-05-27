@@ -409,6 +409,11 @@ export class DataService {
   // Job Addresses
   async getJobAddresses(userId) {
     try {
+      if (!userId) {
+        console.warn("⚠️ getJobAddresses called with null or undefined userId")
+        return { data: [], error: null }
+      }
+      
       const { data, error } = await supabase
         .from(TABLES.JOB_ADDRESSES)
         .select('*')
@@ -416,31 +421,68 @@ export class DataService {
         .order('address', { ascending: true })
 
       if (error) throw error
-      return { data: data || [], error: null }
+      
+      if (!data) {
+        console.warn(`⚠️ No job addresses found for user ${userId}`)
+        return { data: [], error: null }
+      }
+      
+      // Filter out any null addresses
+      const filteredData = data.filter(addr => addr && addr.address)
+      return { data: filteredData, error: null }
     } catch (error) {
+      console.error(`❌ Error in getJobAddresses for user ${userId}:`, error.message || error)
       return { data: [], error }
     }
   }
 
   async addJobAddress(userId, address) {
     try {
+      if (!userId) {
+        console.warn("⚠️ addJobAddress called with null or undefined userId")
+        return { data: null, error: { message: "Invalid user ID" } }
+      }
+      
+      if (!address || typeof address !== 'string' || !address.trim()) {
+        console.warn("⚠️ addJobAddress called with invalid address")
+        return { data: null, error: { message: "Address cannot be empty" } }
+      }
+      
+      // Clean up the address
+      const cleanAddress = address.trim()
+      
       const { data, error } = await supabase
         .from(TABLES.JOB_ADDRESSES)
         .insert({
-          address,
+          address: cleanAddress,
           user_id: userId
         })
         .select()
 
       if (error) throw error
+      
+      // Invalidate the cache since we've added a new address
+      this._invalidateCache()
+      
       return { data, error: null }
     } catch (error) {
+      console.error(`❌ Error in addJobAddress for user ${userId}:`, error.message || error)
       return { data: null, error }
     }
   }
 
   async deleteJobAddress(userId, addressId) {
     try {
+      if (!userId) {
+        console.warn("⚠️ deleteJobAddress called with null or undefined userId")
+        return { error: { message: "Invalid user ID" } }
+      }
+      
+      if (!addressId) {
+        console.warn("⚠️ deleteJobAddress called with null or undefined addressId")
+        return { error: { message: "Invalid address ID" } }
+      }
+      
       const { error } = await supabase
         .from(TABLES.JOB_ADDRESSES)
         .delete()
@@ -448,8 +490,13 @@ export class DataService {
         .eq('user_id', userId)
 
       if (error) throw error
+      
+      // Invalidate the cache since we've deleted an address
+      this._invalidateCache()
+      
       return { error: null }
     } catch (error) {
+      console.error(`❌ Error in deleteJobAddress for user ${userId}, address ${addressId}:`, error.message || error)
       return { error }
     }
   }

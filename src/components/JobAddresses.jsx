@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { timeTrackerAPI } from '../lib/supabase-real.js'
-import { MapPin, Plus, Trash2, Search } from 'lucide-react'
+import { MapPin, Plus, Trash2, Search, AlertCircle } from 'lucide-react'
 
 function JobAddresses({ user }) {
   const [addresses, setAddresses] = useState([])
@@ -12,12 +12,19 @@ function JobAddresses({ user }) {
   const [success, setSuccess] = useState('')
 
   useEffect(() => {
-    loadAddresses()
-  }, [user.id])
+    if (user && user.id) {
+      loadAddresses()
+    } else {
+      setError('User information is missing. Please try signing out and back in.')
+      setLoading(false)
+    }
+  }, [user?.id])
 
   const loadAddresses = async () => {
     try {
       setLoading(true)
+      setError('')
+      
       const response = await timeTrackerAPI.getJobAddresses(user.id)
       if (response.error) {
         setError('Failed to load job addresses: ' + response.error.message)
@@ -34,14 +41,31 @@ function JobAddresses({ user }) {
 
   const handleAddAddress = async (e) => {
     e.preventDefault()
-    if (!newAddress.trim()) return
+    const trimmedAddress = newAddress.trim()
+    
+    if (!trimmedAddress) {
+      setError('Address cannot be empty')
+      return
+    }
+    
+    // Basic validation
+    if (trimmedAddress.length < 3) {
+      setError('Address is too short. Please enter a valid address.')
+      return
+    }
+    
+    // Check for duplicate addresses
+    if (addresses.some(addr => addr.address.toLowerCase() === trimmedAddress.toLowerCase())) {
+      setError('This address already exists in your list.')
+      return
+    }
 
     setAdding(true)
     setError('')
     setSuccess('')
 
     try {
-      const response = await timeTrackerAPI.addJobAddress(user.id, newAddress.trim())
+      const response = await timeTrackerAPI.addJobAddress(user.id, trimmedAddress)
       if (response.error) {
         setError('Failed to add address: ' + response.error.message)
       } else {
@@ -59,11 +83,17 @@ function JobAddresses({ user }) {
   }
 
   const handleDeleteAddress = async (addressId) => {
+    if (!addressId) {
+      setError('Invalid address ID')
+      return
+    }
+    
     if (!window.confirm('Are you sure you want to delete this job address?')) {
       return
     }
 
     try {
+      setError('')
       const response = await timeTrackerAPI.deleteJobAddress(user.id, addressId)
       if (response.error) {
         setError('Failed to delete address: ' + response.error.message)
@@ -79,7 +109,7 @@ function JobAddresses({ user }) {
   }
 
   const filteredAddresses = addresses.filter(address =>
-    address.address.toLowerCase().includes(searchTerm.toLowerCase())
+    address.address && address.address.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   if (loading) {
@@ -102,7 +132,8 @@ function JobAddresses({ user }) {
         </div>
         <div className="card-content">
           {error && (
-            <div className="error-message" style={{ marginBottom: '1rem' }}>
+            <div className="error-message" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <AlertCircle size={16} />
               {error}
             </div>
           )}
@@ -120,15 +151,20 @@ function JobAddresses({ user }) {
                 <input
                   type="text"
                   value={newAddress}
-                  onChange={(e) => setNewAddress(e.target.value)}
+                  onChange={(e) => {
+                    setNewAddress(e.target.value)
+                    // Clear error when user starts typing again
+                    if (error) setError('')
+                  }}
                   className="form-input"
                   placeholder="Enter job address..."
+                  maxLength={100}
                   required
                 />
                 <button 
                   type="submit" 
                   className="btn btn-primary"
-                  disabled={adding || !newAddress.trim()}
+                  disabled={adding || !newAddress.trim() || newAddress.trim().length < 3}
                 >
                   <Plus size={16} />
                   {adding ? 'Adding...' : 'Add'}
