@@ -24,9 +24,30 @@ export class DataService {
       cacheTimeout: 300000
     }
     
+    // Timer tracking to prevent console errors
+    this._timers = {}
+    
     // Initialize state
     this._loadCurrentUser()
     this._initializeData()
+  }
+
+  // Helper method for safer timer management
+  _startTimer(name) {
+    const timerName = `${name}_${Date.now()}`
+    this._timers[timerName] = Date.now()
+    console.log(`🕒 Starting timer: ${name}`)
+    return timerName
+  }
+
+  _endTimer(timerName) {
+    if (!timerName || !this._timers[timerName]) {
+      return
+    }
+    
+    const elapsed = Date.now() - this._timers[timerName]
+    console.log(`⏱️ ${timerName.split('_')[0]} completed in ${elapsed}ms`)
+    delete this._timers[timerName]
   }
 
   async _loadCurrentUser() {
@@ -514,8 +535,7 @@ export class DataService {
         return { data: this._cache.allJobAddresses, error: null }
       }
 
-      timerName = `getAllJobAddresses execution ${Date.now()}`
-      console.time(timerName)
+      timerName = this._startTimer('getAllJobAddresses')
       console.log("🔄 Cache miss or expired for allJobAddresses, fetching fresh data...")
 
       const { data, error } = await supabase
@@ -530,7 +550,7 @@ export class DataService {
         console.warn("⚠️ No job addresses found in database")
         this._cache.allJobAddresses = []
         this._cache.allJobAddressesTimestamp = now
-        console.timeEnd(timerName)
+        this._endTimer(timerName)
         return { data: [], error: null }
       }
       
@@ -540,13 +560,12 @@ export class DataService {
 
       this._cache.allJobAddresses = addresses
       this._cache.allJobAddressesTimestamp = now
-      console.timeEnd(timerName)
+      this._endTimer(timerName)
       console.log(`💾 All job addresses cached for ${this._cache.cacheTimeout / 1000} seconds (${addresses.length} unique addresses)`)
       return { data: addresses, error: null }
     } catch (error) {
-      // End the timer if it was started
       if (timerName) {
-        console.timeEnd(timerName)
+        this._endTimer(timerName)
       }
       console.error("❌ Error in getAllJobAddresses:", error.message || error)
       
@@ -732,8 +751,7 @@ export class DataService {
         return this._cache.allUsersData
       }
 
-      timerName = `getAllUsersData execution ${Date.now()}`
-      console.time(timerName)
+      timerName = this._startTimer('getAllUsersData')
       console.log("🔄 Cache miss or expired, fetching fresh data...")
       
       // Single query to get all users, time entries, and job addresses in parallel
@@ -760,6 +778,7 @@ export class DataService {
       
       if (users.length === 0) {
         console.warn('⚠️ No users found in database!')
+        this._endTimer(timerName)
         return {}
       }
 
@@ -816,16 +835,15 @@ export class DataService {
       this._cache.allUsersData = allData
       this._cache.allUsersDataTimestamp = Date.now()
 
-      console.timeEnd(timerName)
+      this._endTimer(timerName)
       console.log(`✅ Optimized getAllUsersData: processed ${users.length} users with 3 queries instead of ${1 + users.length * 4}`)
       console.log(`💾 Data cached for ${this._cache.cacheTimeout / 1000} seconds`)
       
       return allData
     } catch (error) {
       console.error('Error getting all users data:', error)
-      // End the timer if it was started
       if (timerName) {
-        console.timeEnd(timerName)
+        this._endTimer(timerName)
       }
       return {}
     }
@@ -881,8 +899,7 @@ export class DataService {
         return { data: this._cache.csiTasks, error: null }
       }
 
-      timerName = `getCSITasks execution ${Date.now()}`
-      console.time(timerName)
+      timerName = this._startTimer('getCSITasks')
       console.log("🔄 Cache miss or expired, fetching fresh CSI tasks...")
       
       // Get tasks and all time entries in parallel
@@ -927,16 +944,15 @@ export class DataService {
       this._cache.csiTasks = tasksWithStats
       this._cache.csiTasksTimestamp = Date.now()
 
-      console.timeEnd(timerName)
+      this._endTimer(timerName)
       console.log(`✅ Optimized getCSITasks: processed ${tasks.length} tasks with 2 queries instead of ${1 + tasks.length}`)
       console.log(`💾 CSI tasks cached for ${this._cache.cacheTimeout / 1000} seconds`)
 
       return { data: tasksWithStats, error: null }
     } catch (error) {
       console.error('❌ Error in getCSITasks:', error)
-      // End the timer if it was started
       if (timerName) {
-        console.timeEnd(timerName)
+        this._endTimer(timerName)
       }
       return { data: [], error }
     }

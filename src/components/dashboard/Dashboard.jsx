@@ -40,6 +40,27 @@ const Dashboard = ({ user }) => {
   const [jobOptions, setJobOptions] = useState([])
   const [taskOptions, setTaskOptions] = useState([])
   const [workerOptions, setWorkerOptions] = useState([])
+  
+  // Timer tracking to prevent console errors
+  const timers = React.useRef({})
+  
+  // Helper methods for timer management
+  const startTimer = (name) => {
+    const timerName = `${name}_${Date.now()}`
+    timers.current[timerName] = Date.now()
+    console.log(`🕒 Starting timer: ${name}`)
+    return timerName
+  }
+  
+  const endTimer = (timerName) => {
+    if (!timerName || !timers.current[timerName]) {
+      return
+    }
+    
+    const elapsed = Date.now() - timers.current[timerName]
+    console.log(`⏱️ ${timerName.split('_')[0]} completed in ${elapsed}ms`)
+    delete timers.current[timerName]
+  }
 
   // Load dashboard data on component mount and when user changes
   useEffect(() => {
@@ -81,6 +102,10 @@ const Dashboard = ({ user }) => {
     
     return () => {
       isMounted = false
+      // Clean up any remaining timers when component unmounts
+      Object.keys(timers.current).forEach(key => {
+        endTimer(key)
+      })
     }
   }, [user.id, user.role])
 
@@ -130,8 +155,7 @@ const Dashboard = ({ user }) => {
   const loadDashboardData = async (forceRefresh = false) => {
     let timerName = null
     try {
-      timerName = `Dashboard loadDashboardData execution ${Date.now()}`
-      console.time(timerName)
+      timerName = startTimer('loadDashboardData')
       setLoading(true)
       setError('')
 
@@ -150,13 +174,12 @@ const Dashboard = ({ user }) => {
         setStats(userStats)
       }
       
-      console.timeEnd(timerName)
+      endTimer(timerName)
     } catch (err) {
       setError('Failed to load dashboard data')
       console.error('❌ Error loading dashboard:', err)
-      // End the timer if it was started
       if (timerName) {
-        console.timeEnd(timerName)
+        endTimer(timerName)
       }
     } finally {
       setLoading(false)
