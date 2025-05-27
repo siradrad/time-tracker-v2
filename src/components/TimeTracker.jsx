@@ -401,8 +401,8 @@ function TimeTracker({ user }) {
       <div className="timer-card card">
         <div className="card-header">
           <h2 className="card-title">
-            <Clock />
-            Time Tracker
+            <Clock size={24} />
+            Payroll Optimizer
           </h2>
         </div>
         <div className="card-content">

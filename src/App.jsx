@@ -145,7 +145,7 @@ function App() {
     return (
       <div className="loading-container">
         <div className="spinner"></div>
-        <p>Loading Time Tracker...</p>
+        <p>Loading Payroll Optimizer...</p>
       </div>
     )
   }
@@ -207,7 +207,7 @@ function App() {
               <div className="header-left">
                 <h1 className="app-title">
                   <Clock className="title-icon" />
-                  Time Tracker V2
+                  Payroll Optimizer
                 </h1>
                 <span className="user-info">Welcome, {user.name}!</span>
               </div>

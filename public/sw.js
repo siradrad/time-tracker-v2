@@ -126,10 +126,10 @@ self.addEventListener('push', (event) => {
   console.log('Service Worker: Push notification received');
   
   const options = {
-    body: event.data ? event.data.text() : 'Time Tracker notification',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    vibrate: [100, 50, 100],
+    body: event.data ? event.data.text() : 'Payroll Optimizer notification',
+    icon: './icon-192.png',
+    badge: './icon-192.png',
+    vibrate: [200, 100, 200],
     data: {
       dateOfArrival: Date.now(),
       primaryKey: 1
@@ -137,19 +137,19 @@ self.addEventListener('push', (event) => {
     actions: [
       {
         action: 'explore',
-        title: 'Open Time Tracker',
-        icon: '/icon-192.png'
+        title: 'Open Payroll Optimizer',
+        icon: './icon-192.png'
       },
       {
         action: 'close',
-        title: 'Close notification',
-        icon: '/icon-192.png'
+        title: 'Close',
+        icon: './icon-192.png'
       }
     ]
   };
 
   event.waitUntil(
-    self.registration.showNotification('Time Tracker V2', options)
+    self.registration.showNotification('Payroll Optimizer', options)
   );
 });
 

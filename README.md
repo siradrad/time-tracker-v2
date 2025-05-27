@@ -1,274 +1,231 @@
-# Time Tracker V2 🕒
+# Payroll Optimizer 💰
 
-A modern, responsive time tracking application built with React and Vite, featuring admin management capabilities, CSI division task tracking, Progressive Web App (PWA) functionality, and **Supabase database backend**.
+A modern, full-stack payroll and job cost optimization application built with React and Supabase. Track employee time, manage job costs, and optimize payroll processes with real-time updates and comprehensive reporting.
 
-## ✨ Features
+## 🌟 Features
 
 ### Core Functionality
-- **Multi-Timer System**: Independent work, travel, and break/lunch timers with mutual exclusivity
-- **User Management**: Admin and regular user roles with different capabilities
-- **Time Entry Management**: Create, edit, delete, and organize time entries
-- **Job Address Management**: Organize work by specific job sites
-- **CSI Division Tasks**: Industry-standard construction task categorization
-
-### Database & Backend
-- **Supabase Integration**: Real PostgreSQL database backend with Row Level Security
-- **Multi-User Support**: Multiple users can access the app simultaneously
-- **Real-time Updates**: Live data synchronization across devices
-- **Data Persistence**: Secure, scalable data storage with automatic backups
-- **Authentication**: Secure login system with password hashing
+- **Time Tracking**: Start/stop timer with automatic duration calculation
+- **Manual Entry**: Add time entries manually with date/time selection
+- **Job Management**: Track time against specific job addresses
+- **CSI Division Tracking**: Categorize work by construction divisions
+- **Multi-User Support**: Role-based access (Admin/User)
+- **Real-time Updates**: Live data synchronization across sessions
 
 ### Admin Features
-- **Hierarchical Dashboard**: Time entries organized by year > month > biweekly periods
-- **User Management**: View all users' time entries and statistics
-- **CSI Task Management**: Add, edit, and delete CSI division tasks
-- **Data Management**: Clear all system data (admin only)
+- **Dashboard Analytics**: View all users' time entries and statistics
+- **User Management**: Create and manage user accounts
+- **CSI Task Management**: Add, edit, and delete CSI divisions
+- **Data Export**: Export reports in multiple formats
+- **Bulk Operations**: Clear all data with admin privileges
 
-### Progressive Web App (PWA)
-- **Offline Functionality**: Works without internet connection
-- **App Installation**: Install on mobile devices and desktop
-- **Push Notifications**: Ready for future notification features
-- **Background Sync**: Prepared for automatic data synchronization
-
-### Technical Features
-- **Responsive Design**: Optimized for desktop, tablet, and mobile
-- **Dual Storage Modes**: localStorage (development) or Supabase (production)
-- **Modern UI**: Clean, professional interface with accessibility features
-- **Real-time Updates**: Live timer updates and instant data persistence
+### Reporting System
+- **Multiple Formats**: PDF, CSV, and JSON export options
+- **Flexible Filtering**: By date range, user, job address, and CSI division
+- **Summary Statistics**: Total hours, costs, and breakdowns
+- **Print-Friendly**: Optimized report layouts for printing
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 16+ and npm/yarn
-- Supabase account (for database mode) - [Sign up here](https://supabase.com)
+- Node.js 18.0.0 or higher
+- npm or yarn
+- Supabase account (free tier works)
 
-### Development Setup
+### Installation
+
+1. Clone the repository:
 ```bash
-# Clone the repository
-git clone [your-repository-url]
-cd time-tracker-v2
+git clone https://github.com/yourusername/payroll-optimizer.git
+cd payroll-optimizer
+```
 
-# Install dependencies
+2. Install dependencies:
+```bash
 npm install
+```
 
-# Start development server (localStorage mode)
+3. Set up environment variables:
+```bash
+cp .env.example .env
+```
+
+4. Update `.env` with your Supabase credentials:
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+5. Run the development server:
+```bash
 npm run dev
 ```
 
-Visit `http://localhost:3000` to access the application.
+Visit `http://localhost:5173` to see the application.
 
-### Database Setup (Recommended for Production)
+## 📱 Mobile Support
 
-For full database functionality with Supabase:
+The application is fully responsive and includes PWA capabilities:
 
-1. **Follow the Setup Guide**: See `SUPABASE_SETUP.md` for complete instructions
-2. **Quick Setup**:
-   ```bash
-   # Create environment file
-   cp .env.example .env
-   
-   # Add your Supabase credentials to .env
-   VITE_SUPABASE_URL=https://your-project.supabase.co
-   VITE_SUPABASE_ANON_KEY=your-anon-key
-   ```
-3. **Run the database schema** in your Supabase SQL editor
-4. **Switch to database mode** by updating imports in `src/lib/supabase.js`
+### Installation on Mobile
 
-### Test Accounts
-- **Admin**: admin@timetracker.app / admin123
-- **Stacy**: stacy@timetracker.app / stacy123
-- **Jeremy**: jeremy@timetracker.app / jeremy123  
-- **Humberto**: humberto@timetracker.app / humberto123
-- **Enrique**: enrique@timetracker.app / enrique123
-- **Drew**: drew@timetracker.app / drew123
-- **Enrique Sr**: enriquesr@timetracker.app / enriquesr123
-- **Karen**: karen@timetracker.app / karen123
-- **Anthony**: anthony@timetracker.app / anthony123
-- **Angela**: angela@timetracker.app / angela123
+#### iOS (Safari)
+1. Open the app in Safari
+2. Tap the Share button
+3. Select "Add to Home Screen"
+4. Tap "Add"
 
-## 📊 Storage Modes
+#### Android (Chrome)
+1. Open the app in Chrome
+2. Tap the menu (three dots)
+3. Select "Install app" or "Add to Home Screen"
+4. Tap "Install"
 
-### localStorage Mode (Default)
-- **Use Case**: Development, testing, single-user scenarios
-- **Data Storage**: Browser localStorage
-- **Limitations**: Single device, data lost on browser clear
-- **Advantages**: No setup required, works offline
+### Mobile Features
+- Offline capability with service worker
+- Touch-optimized interface
+- Responsive navigation
+- Pull-to-refresh prevention
+- Home screen installation
 
-### Supabase Database Mode (Recommended)
-- **Use Case**: Production, multi-user, team environments
-- **Data Storage**: PostgreSQL database via Supabase
-- **Features**: Multi-user, real-time sync, secure, scalable
-- **Setup Required**: See `SUPABASE_SETUP.md`
+## 🗄️ Database Schema
 
-## 📱 PWA Installation
+### Tables
 
-### For End Users
+#### users
+- `id` (UUID, Primary Key)
+- `username` (Text, Unique)
+- `password_hash` (Text)
+- `name` (Text)
+- `role` (Text: 'admin' or 'user')
+- `created_at` (Timestamp)
 
-#### On Mobile (iOS/Android)
-1. Open the app in your mobile browser
-2. Look for the "Install" prompt or "Add to Home Screen" option
-3. Tap "Install" to add the app to your device
-4. Access like any native app from your home screen
+#### time_entries
+- `id` (UUID, Primary Key)
+- `user_id` (UUID, Foreign Key)
+- `start_time` (Time)
+- `end_time` (Time)
+- `duration` (Integer - seconds)
+- `job_address` (Text)
+- `csi_division` (Text)
+- `notes` (Text)
+- `date` (Date)
+- `manual` (Boolean)
+- `created_at` (Timestamp)
 
-#### On Desktop (Chrome, Edge, Safari)
-1. Look for the install icon in the address bar
-2. Click "Install Time Tracker V2"
-3. Use like a desktop application
+#### job_addresses
+- `id` (UUID, Primary Key)
+- `user_id` (UUID, Foreign Key)
+- `address` (Text)
+- `created_at` (Timestamp)
 
-### App Icons Setup
-1. Open `generate-icons.html` in your browser
-2. Download the generated `icon-192.png` and `icon-512.png`
-3. Place them in the `public/` folder
-4. Rebuild the application
+#### csi_tasks
+- `id` (UUID, Primary Key)
+- `name` (Text, Unique)
+- `created_at` (Timestamp)
 
-## 🛠 Development & Deployment
+## 🔒 Security
 
-### Build for Production
-```bash
-# Create optimized production build
-npm run build
+### Row Level Security (RLS)
+All tables are protected with RLS policies:
+- Users can only see and modify their own data
+- Admins have full access to all data
+- Public registration is disabled by default
 
-# Preview production build locally
-npm run preview
+### Authentication
+- Password hashing with bcrypt
+- Session-based authentication
+- Secure token storage
+
+## 🛠️ Development
+
+### Tech Stack
+- **Frontend**: React 18, Vite, Lucide Icons
+- **Backend**: Supabase (PostgreSQL)
+- **Styling**: CSS Variables, Responsive Design
+- **PWA**: Service Worker, Web App Manifest
+
+### Project Structure
 ```
-
-### Deployment Options
-
-#### Option 1: Static Hosting (Recommended)
-**Netlify (Easiest)**
-1. Run `npm run build`
-2. Drag the `dist` folder to netlify.com
-3. Get instant live URL
-4. Add environment variables in Netlify dashboard
-
-**Vercel**
-1. Connect your GitHub repository
-2. Add environment variables in Vercel dashboard
-3. Automatic deployment on every push
-
-**GitHub Pages**
-1. Build the project: `npm run build`
-2. Deploy the `dist` folder to GitHub Pages
-3. Configure environment variables for production
-
-#### Option 2: Traditional Web Hosting
-Upload the contents of the `dist` folder to any web server that serves static files.
-
-### PWA Features Configuration
-- **Manifest**: `public/manifest.json` - App metadata and installation behavior
-- **Service Worker**: `public/sw.js` - Offline functionality and caching
-- **Icons**: `public/icon-*.png` - App icons for different screen sizes
-
-## 🗃️ Database Schema
-
-When using Supabase mode, the application creates these tables:
-
-- **users**: Team member accounts with roles and authentication
-- **time_entries**: All time tracking records with duration and metadata  
-- **job_addresses**: Work site locations per user
-- **csi_tasks**: Construction industry task categories (shared)
-
-### Security Features
-- **Row Level Security (RLS)**: Users can only access their own data
-- **Admin Override**: Admin users can view all data for management
-- **Password Hashing**: Secure bcrypt password storage
-- **Environment Variables**: API keys stored securely
-
-## 📁 Project Structure
-
-```
-time-tracker-v2/
-├── public/
-│   ├── manifest.json          # PWA manifest for app installation
-│   ├── sw.js                  # Service worker for offline functionality
-│   ├── icon-192.png          # App icon (192x192)
-│   └── icon-512.png          # App icon (512x512)
+payroll-optimizer/
 ├── src/
-│   ├── components/
-│   │   ├── Login.jsx         # Authentication component
-│   │   ├── TimeTracker.jsx   # Main timer interface
-│   │   ├── Dashboard.jsx     # Admin/user dashboard
-│   │   ├── TimeEntries.jsx   # Time entry management
-│   │   ├── JobAddresses.jsx  # Job site management
-│   │   └── CSITasks.jsx      # CSI division management
-│   ├── lib/
-│   │   ├── supabase.js       # Main API export (configurable)
-│   │   ├── supabase-config.js # Supabase configuration
-│   │   └── supabase-real.js  # Database implementation
-│   ├── App.jsx               # Main application component
-│   ├── App.css               # Global styles and design system
-│   └── main.jsx              # Application entry point
-├── database-schema.sql        # Supabase database schema
-├── SUPABASE_SETUP.md         # Database setup instructions
-├── generate-icons.html        # Icon generator utility
-├── vite.config.js            # Build configuration
-└── package.json              # Dependencies and scripts
+│   ├── components/      # React components
+│   ├── lib/            # API and utilities
+│   ├── App.jsx         # Main app component
+│   ├── App.css         # Global styles
+│   └── main.jsx        # Entry point
+├── public/             # Static assets
+├── database-schema.sql # Database setup
+└── package.json        # Dependencies
 ```
 
-## 🔧 Technology Stack
+### Available Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
 
-- **Frontend**: React 18 + Vite
-- **Styling**: CSS Custom Properties + Responsive Design
-- **Icons**: Lucide React
-- **Database**: Supabase (PostgreSQL) with Row Level Security
-- **Storage**: LocalStorage (dev) / Supabase (prod)
-- **Authentication**: Custom with bcrypt password hashing
-- **PWA**: Service Worker + Web App Manifest
-- **Build**: Vite with optimized production builds
+## 🚀 Deployment
 
-## 🎯 Usage Guidelines
+### Vercel (Recommended)
+1. Push to GitHub
+2. Import project in Vercel
+3. Add environment variables
+4. Deploy
 
-### For Regular Users
-1. **Login** with your credentials
-2. **Start Timer** by selecting job address and CSI task
-3. **Use Quick Timers** for travel and breaks (mutually exclusive with work timer)
-4. **View Time Entries** to see your recorded time
-5. **Manage Job Addresses** for your work sites
+### Manual Deployment
+1. Build the project:
+```bash
+npm run build
+```
 
-### For Administrators
-1. **Dashboard** shows all users' time entries in hierarchical organization
-2. **CSI Tasks** management for system-wide task categories
-3. **User Management** through time entries view
-4. **Data Management** capabilities including system reset
+2. Deploy the `dist` folder to your hosting service
 
-### Timer Rules
-- **Work Timer**: Primary timer, disables travel/break timers when active
-- **Travel Timer**: For travel time, pauses break timer if active
-- **Break Timer**: For breaks/lunch, pauses travel timer if active
-- **Mutual Exclusivity**: Only one timer can run at a time
+## 📊 Features in Detail
 
-## 🔄 Migration Path
+### Time Entry Management
+- Start/stop timer with real-time duration tracking
+- Manual entry with date/time pickers
+- Edit existing entries
+- Bulk delete operations
+- Automatic time calculation
 
-### From localStorage to Database
+### Job Address System
+- Pre-configured job addresses per user
+- Quick selection dropdown
+- Add new addresses on the fly
+- Delete unused addresses
 
-1. **Export Current Data** (if needed):
-   ```javascript
-   // In browser console:
-   const data = JSON.parse(localStorage.getItem('timeTracker_users') || '{}')
-   console.log(JSON.stringify(data, null, 2))
-   ```
+### CSI Division Tracking
+- Industry-standard construction divisions
+- Customizable task list
+- Usage statistics
+- Time breakdown by division
 
-2. **Set Up Supabase**: Follow `SUPABASE_SETUP.md`
-
-3. **Switch Modes**: Update `src/lib/supabase.js` imports
-
-4. **Test & Validate**: Verify all functionality works with database
+### Reporting Capabilities
+- Date range filtering
+- User-based filtering (admin only)
+- Multiple export formats
+- Summary statistics
+- Detailed breakdowns
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Make your changes and test thoroughly
-4. Commit changes: `git commit -m 'Add feature description'`
-5. Push to branch: `git push origin feature-name`
-6. Open a Pull Request
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## 📞 Support
+## 📝 License
 
-For support, please open an issue in the GitHub repository or contact the development team.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-**Database Setup Help**: See `SUPABASE_SETUP.md` for detailed instructions.
+## 🙏 Acknowledgments
+
+- Built with React and Supabase
+- Icons by Lucide
+- Hosted on Vercel
 
 ---
 
-**Time Tracker V2** - Built for modern construction and project management workflows with enterprise-grade database backend. 🏗️ 💾 # Environment variables configured
+**Payroll Optimizer** - Built for modern construction and project management workflows with enterprise-grade database backend. 💰 📊

@@ -6,9 +6,9 @@
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#3b82f6" />
-    <meta name="description" content="A modern time tracking application for construction and project management" />
+    <meta name="description" content="A modern payroll and job cost optimization application" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="TimeTracker" />
+    <meta name="apple-mobile-web-app-title" content="PayOpt" />
     <meta name="msapplication-TileColor" content="#3b82f6" />
     <meta name="msapplication-config" content="/browserconfig.xml" />
     
@@ -21,7 +21,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/icon-192.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/icon-192.png" />
     
-    <title>Time Tracker V2</title>
+    <title>Payroll Optimizer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -92,8 +92,17 @@
 
       // Track app install
       window.addEventListener('appinstalled', (evt) => {
-        console.log('Time Tracker app was installed');
+        console.log('Payroll Optimizer app was installed');
       });
+
+      if (permission === 'granted') {
+        console.log('Notification permission granted');
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then(function(registration) {
+            console.log('Payroll Optimizer app was installed');
+          });
+        }
+      }
     </script>
   </body>
 </html> 

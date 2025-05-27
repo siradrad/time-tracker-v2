@@ -25,7 +25,7 @@
 - **Clarification**: The login screen correctly shows:
   - Title: "Welcome"
   - Subtitle: "Payroll and Job Cost Optimizer"
-- The main app header continues to show "Time Tracker V2" (this is intentional)
+- The main app header shows "Payroll Optimizer" when logged in
 
 ## Technical Implementation
 

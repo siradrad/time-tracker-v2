@@ -1,5 +1,5 @@
 {
-  "name": "time-tracker-v2",
+  "name": "payroll-optimizer",
   "private": true,
   "version": "2.0.0",
   "type": "module",
@@ -12,13 +12,16 @@
   },
   "homepage": "https://christopherddardaris.github.io/time-tracker-v2",
   "dependencies": {
-    "@supabase/supabase-js": "^2.49.8",
-    "bcryptjs": "^3.0.2",
-    "dotenv": "^16.5.0",
-    "lucide-react": "^0.294.0",
+    "@supabase/supabase-js": "^2.39.2",
+    "bcryptjs": "^2.4.3",
+    "date-fns": "^3.0.6",
+    "date-fns-tz": "^2.0.0",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.1",
+    "lucide-react": "^0.303.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^7.6.1"
+    "react-router-dom": "^6.21.3"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
@@ -38,5 +41,20 @@
     "vite",
     "productivity"
   ],
-  "author": "Time Tracker Team"
+  "author": "Payroll Optimizer Team",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
 }
