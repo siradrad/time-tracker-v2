@@ -1,0 +1,355 @@
+import React, { useState, useEffect } from 'react'
+import { timeTrackerAPI } from '../lib/supabase-real.js'
+import { Clock, User, Lock, Mail, UserPlus, LogIn } from 'lucide-react'
+
+function Login({ onLogin }) {
+  const [isSignUp, setIsSignUp] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [lastUser, setLastUser] = useState(null)
+
+  useEffect(() => {
+    // Check for last logged-in user from Supabase session
+    async function checkSession() {
+      const user = await timeTrackerAPI.getCurrentUser()
+      if (user) setLastUser(user)
+    }
+    checkSession()
+  }, [])
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    try {
+      let response
+      if (isSignUp) {
+        response = await timeTrackerAPI.signUp(email, password, name)
+      } else {
+        response = await timeTrackerAPI.signIn(email, password)
+      }
+      if (response.error) {
+        setError(response.error.message)
+      } else {
+        onLogin(response.data.user || response.data)
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleQuickLogin = async () => {
+    if (lastUser) {
+      // Use the session user for quick login
+      onLogin(lastUser)
+    }
+  }
+
+  return (
+    <div className="login-container">
+      <div className="login-content">
+        <div className="login-header">
+          <div className="login-logo">
+            <Clock size={48} className="logo-icon" />
+            <h1>Welcome</h1>
+          </div>
+          <p className="login-subtitle">
+            Payroll and Job Cost Optimizer
+          </p>
+        </div>
+        <div className="login-form-container">
+          <form onSubmit={handleSubmit} className="login-form">
+            <div className="form-toggle">
+              <button
+                type="button"
+                onClick={() => setIsSignUp(false)}
+                className={`toggle-btn ${!isSignUp ? 'active' : ''}`}
+              >
+                <LogIn size={16} />
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsSignUp(true)}
+                className={`toggle-btn ${isSignUp ? 'active' : ''}`}
+              >
+                <UserPlus size={16} />
+                Sign Up
+              </button>
+            </div>
+            {error && (
+              <div className="error-message">
+                {error}
+              </div>
+            )}
+            {isSignUp && (
+              <div className="form-group">
+                <label htmlFor="name" className="form-label">
+                  <User size={16} />
+                  Full Name
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="form-input"
+                  placeholder="Enter your full name"
+                  required
+                />
+              </div>
+            )}
+            <div className="form-group">
+              <label htmlFor="email" className="form-label">
+                <Mail size={16} />
+                Email Address
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="form-input"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="password" className="form-label">
+                <Lock size={16} />
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="form-input"
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+            <button 
+              type="submit" 
+              className="btn btn-primary login-submit"
+              disabled={loading}
+            >
+              {loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}
+            </button>
+          </form>
+          {/* Quick Login for last user */}
+          {lastUser && (
+            <div className="quick-login">
+              <button
+                onClick={handleQuickLogin}
+                className="btn btn-primary"
+                disabled={loading}
+                style={{ width: '100%', marginTop: '1rem' }}
+              >
+                Quick Login as {lastUser.name || lastUser.username}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <style jsx>{`
+        .login-container {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background-color: var(--color-background-alt, #f9fafb);
+          padding: 2rem;
+        }
+
+        .login-content {
+          width: 100%;
+          max-width: 500px;
+          background: var(--color-surface, #ffffff);
+          border-radius: var(--border-radius-lg, 8px);
+          box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1));
+          overflow: hidden;
+        }
+
+        .login-header {
+          background-color: var(--color-accent, #3b82f6);
+          color: var(--color-text-on-accent, #ffffff);
+          padding: 2rem;
+          text-align: center;
+        }
+
+        .login-logo {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 1rem;
+          margin-bottom: 1rem;
+        }
+
+        .logo-icon {
+          animation: rotate 20s linear infinite;
+        }
+
+        .login-logo h1 {
+          margin: 0;
+          font-size: 2rem;
+          font-weight: 700;
+        }
+
+        .login-subtitle {
+          margin: 0;
+          opacity: 0.85;
+          font-size: 1rem;
+        }
+
+        .login-form-container {
+          padding: 2.5rem; /* Increased padding */
+        }
+
+        .form-toggle {
+          display: flex;
+          background: var(--color-background-alt, #f9fafb);
+          border-radius: var(--border-radius-md, 6px);
+          padding: 4px;
+          margin-bottom: 2rem;
+        }
+
+        .toggle-btn {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          padding: 0.75rem;
+          background: none;
+          border: none;
+          border-radius: var(--border-radius-sm, 4px);
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          color: var(--color-text-secondary, #374151);
+        }
+
+        .toggle-btn.active {
+          background: var(--color-surface, #ffffff);
+          color: var(--color-accent, #3b82f6);
+          box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0,0,0,0.05));
+        }
+
+        .form-group {
+          margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 0.5rem;
+          font-weight: 500;
+          color: var(--color-text-secondary, #374151);
+        }
+
+        .login-submit {
+          width: 100%;
+          padding: 0.875rem;
+          font-size: 1rem;
+          font-weight: 600;
+        }
+
+        .test-accounts {
+          margin-top: 2rem;
+          padding-top: 2rem;
+          border-top: 1px solid var(--color-border, #e5e7eb);
+        }
+
+        .test-accounts h3 {
+          margin: 0 0 0.5rem 0;
+          color: var(--color-text-primary, #111827);
+          font-size: 1.125rem;
+        }
+
+        .test-accounts-note {
+          margin: 0 0 1rem 0;
+          color: var(--color-text-secondary, #374151);
+          font-size: 0.875rem;
+        }
+
+        .test-accounts-grid {
+          display: grid;
+          gap: 0.75rem;
+        }
+
+        .test-account-card {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          padding: 1rem;
+          background: var(--color-background-alt, #f9fafb);
+          border: 1px solid var(--color-border, #e5e7eb);
+          border-radius: var(--border-radius-md, 6px);
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-align: left;
+        }
+
+        .test-account-card:hover {
+          background: var(--color-accent-soft-hover, #dbeafe);
+          border-color: var(--color-accent, #3b82f6);
+          transform: translateY(-1px);
+        }
+
+        .test-account-card:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .test-account-role {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: var(--color-accent, #3b82f6);
+          text-transform: uppercase;
+          margin-bottom: 0.25rem;
+        }
+
+        .test-account-name {
+          font-weight: 600;
+          color: var(--color-text-primary, #111827);
+          margin-bottom: 0.25rem;
+        }
+
+        .test-account-email {
+          font-size: 0.875rem;
+          color: var(--color-text-secondary, #374151);
+        }
+
+        @keyframes rotate {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 640px) {
+          .login-container {
+            padding: 1rem;
+          }
+          
+          .login-header {
+            padding: 1.5rem;
+          }
+          
+          .login-form-container {
+            padding: 1.5rem;
+          }
+        }
+      `}</style>
+    </div>
+  )
+}
+
+export default Login 
