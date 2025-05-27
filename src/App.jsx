@@ -8,13 +8,14 @@ import TimeEntries from './components/TimeEntries.jsx'
 import Dashboard from './components/Dashboard.jsx'
 import CSITasks from './components/CSITasks.jsx'
 import ReportPage from './components/ReportPage.jsx'
-import { Clock, MapPin, List, BarChart3, LogOut, Settings, Briefcase } from 'lucide-react'
+import { Clock, MapPin, List, BarChart3, LogOut, Settings, Briefcase, ChevronDown, Menu } from 'lucide-react'
 import './App.css'
 
 function App() {
   const [user, setUser] = useState(null)
   const [currentView, setCurrentView] = useState('timer')
   const [loading, setLoading] = useState(true)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const location = useLocation()
 
   // Check if this is a report page
@@ -23,102 +24,34 @@ function App() {
   useEffect(() => {
     checkUser()
     
-    // Comprehensive pull-to-refresh prevention for mobile devices
+    // Simplified pull-to-refresh prevention for mobile
     let touchStartY = 0
-    let touchEndY = 0
     
     const handleTouchStart = (e) => {
+      // Store initial touch position
       touchStartY = e.touches[0].clientY
     }
     
     const handleTouchMove = (e) => {
-      touchEndY = e.touches[0].clientY
-      
-      // Check if the touch target is a button, link, or interactive element
-      const target = e.target
-      const isInteractive = 
-        target.closest('button') || 
-        target.closest('a') || 
-        target.closest('input') || 
-        target.closest('select') ||
-        target.closest('textarea')
-        
-      if (isInteractive) {
-        // Don't prevent default on interactive elements
+      // Skip if touching interactive elements (buttons, inputs, etc.)
+      if (e.target.closest('button, a, input, select, textarea, .nav-list')) {
         return
       }
       
-      // Check if we're in the navigation area
-      const isInNavigation = target.closest('.nav-list') || target.closest('.nav-button')
-      if (isInNavigation) {
-        // Don't interfere with navigation button touches
-        return
-      }
-      
-      // Get all scrollable elements
-      const scrollableElements = [
-        ...e.composedPath().filter(el => {
-          if (!(el instanceof Element)) return false
-          const style = window.getComputedStyle(el)
-          return (
-            style.overflowY === 'auto' || 
-            style.overflowY === 'scroll' ||
-            el.classList.contains('main-content')
-          )
-        })
-      ]
-      
-      // If we're at the top of the page or any scrollable element
-      const atTop = scrollableElements.length === 0 || 
-        scrollableElements.every(el => el.scrollTop === 0)
-      
-      // Only prevent pull-to-refresh if pulling down at the top
-      // and the pull distance is significant (more than 10px)
-      if (atTop && touchEndY > touchStartY && (touchEndY - touchStartY) > 10) {
+      // Simple pull-to-refresh prevention
+      if (window.scrollY === 0 && e.touches[0].clientY > touchStartY + 5) {
         e.preventDefault()
       }
     }
     
-    const handleTouchEnd = (e) => {
-      // Check if the touch target is an interactive element
-      const target = e.target
-      const isInteractive = 
-        target.closest('button') || 
-        target.closest('a') || 
-        target.closest('input') || 
-        target.closest('select') ||
-        target.closest('textarea')
-        
-      if (isInteractive) {
-        return
-      }
-      
-      // Additional prevention on touch end only for significant pull
-      if (window.scrollY === 0 && touchEndY > touchStartY && (touchEndY - touchStartY) > 10) {
-        // e.preventDefault() // Commenting out as this may prevent button clicks on mobile
-      }
-    }
-    
-    // Add event listeners with { passive: false } to allow preventDefault
-    document.addEventListener('touchstart', handleTouchStart, { passive: false })
+    // Add event listeners
+    document.addEventListener('touchstart', handleTouchStart, { passive: true })
     document.addEventListener('touchmove', handleTouchMove, { passive: false })
-    document.addEventListener('touchend', handleTouchEnd, { passive: false })
-    
-    // Also prevent any window scroll
-    const preventWindowScroll = (e) => {
-      if (window.scrollY !== 0) {
-        window.scrollTo(0, 0)
-      }
-    }
-    
-    window.addEventListener('scroll', preventWindowScroll)
     
     // Cleanup
     return () => {
       document.removeEventListener('touchstart', handleTouchStart)
       document.removeEventListener('touchmove', handleTouchMove)
-      document.removeEventListener('touchend', handleTouchEnd)
-      window.removeEventListener('scroll', preventWindowScroll)
     }
   }, [])
 
@@ -132,6 +65,11 @@ function App() {
       }
     }
   }, [user])
+
+  // Close mobile navigation when a view is selected
+  useEffect(() => {
+    setMobileNavOpen(false)
+  }, [currentView])
 
   const checkUser = async () => {
     try {
@@ -204,21 +142,21 @@ function App() {
   // Different navigation items based on user role
   const getNavigationItems = () => {
     const baseItems = [
-      { id: 'entries', label: 'Time Entries', icon: List },
-      { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-      { id: 'addresses', label: 'Job Addresses', icon: MapPin },
+      { id: 'entries', label: 'Time Entries', mobileLabel: 'Entries', icon: List },
+      { id: 'dashboard', label: 'Dashboard', mobileLabel: 'Dashboard', icon: BarChart3 },
+      { id: 'addresses', label: 'Job Addresses', mobileLabel: 'Jobs', icon: MapPin },
     ]
 
     if (user.role === 'admin') {
       // Admin users don't get the timer - they manage data
       return [
         ...baseItems,
-        { id: 'csi-tasks', label: 'CSI Tasks', icon: Briefcase }
+        { id: 'csi-tasks', label: 'CSI Tasks', mobileLabel: 'Tasks', icon: Briefcase }
       ]
     } else {
       // Regular users get the timer first
       return [
-        { id: 'timer', label: 'Timer', icon: Clock },
+        { id: 'timer', label: 'Timer', mobileLabel: 'Timer', icon: Clock },
         ...baseItems
       ]
     }
@@ -247,6 +185,12 @@ function App() {
     }
   }
 
+  // Get the current active view name
+  const getCurrentViewName = () => {
+    const currentItem = navigationItems.find(item => item.id === currentView)
+    return currentItem ? currentItem.label : 'Dashboard'
+  }
+
   return (
     <Routes>
       <Route path="/report" element={<ReportPage />} />
@@ -269,7 +213,7 @@ function App() {
                     title="Clear all data (Admin only)"
                   >
                     <Settings size={16} />
-                    Clear Data
+                    <span>Clear Data</span>
                   </button>
                 )}
                 <button 
@@ -277,7 +221,7 @@ function App() {
                   className="btn btn-outline"
                 >
                   <LogOut size={16} />
-                  Sign Out
+                  <span>Sign Out</span>
                 </button>
               </div>
             </div>
@@ -285,7 +229,20 @@ function App() {
 
           <div className="app-body">
             <nav className="sidebar">
-              <ul className="nav-list">
+              {/* Mobile Navigation Toggle Button */}
+              <button 
+                className={`mobile-nav-toggle ${mobileNavOpen ? 'open' : ''}`}
+                onClick={() => setMobileNavOpen(!mobileNavOpen)}
+              >
+                <div className="toggle-content">
+                  <Menu size={20} />
+                  <span>{getCurrentViewName()}</span>
+                </div>
+                <ChevronDown size={20} />
+              </button>
+
+              {/* Navigation List */}
+              <ul className={`nav-list ${mobileNavOpen ? 'open' : ''}`}>
                 {navigationItems.map((item) => {
                   const Icon = item.icon
                   
@@ -300,7 +257,8 @@ function App() {
                         data-nav-id={item.id}
                       >
                         <Icon size={20} />
-                        <span>{item.label}</span>
+                        <span className="desktop-label">{item.label}</span>
+                        <span className="mobile-label">{item.mobileLabel}</span>
                       </button>
                     </li>
                   )

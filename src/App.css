@@ -35,42 +35,17 @@
   --spacing-unit: 0.25rem; /* 4px */
 }
 
-/* Prevent pull-to-refresh on mobile - comprehensive fix */
-* {
-  /* Prevent overscroll on all elements */
-  overscroll-behavior: none;
-}
-
-html {
-  overscroll-behavior: none;
+/* Basic overscroll prevention */
+html, body {
+  overscroll-behavior: contain;
   height: 100%;
-  overflow: hidden;
-  position: fixed;
-  width: 100%;
-}
-
-body {
-  overscroll-behavior: none;
   margin: 0;
   padding: 0;
-  height: 100%;
-  overflow: hidden;
-  position: fixed;
-  width: 100%;
-  top: 0;
-  left: 0;
   -webkit-overflow-scrolling: touch;
-  /* Prevent iOS rubber band scrolling */
-  -webkit-transform: translateZ(0);
 }
 
 #root {
   height: 100%;
-  overflow: hidden;
-  position: fixed;
-  width: 100%;
-  top: 0;
-  left: 0;
 }
 
 .app {
@@ -80,15 +55,8 @@ body {
   background-color: var(--color-background-alt);
   font-family: var(--font-family-sans);
   color: var(--color-text-primary);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
   /* Prevent any overscroll */
-  overscroll-behavior: none;
-  touch-action: pan-x pan-y;
+  overscroll-behavior: contain;
 }
 
 /* Header */
@@ -193,6 +161,11 @@ body {
   overscroll-behavior: none;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+/* Mobile navigation toggle - hidden on desktop */
+.mobile-nav-toggle {
+  display: none;
 }
 
 .nav-list {
@@ -472,140 +445,144 @@ body {
     font-size: 0.8rem;
   }
   
+  /* Mobile dropdown navigation */
   .sidebar {
     width: 100%;
-    height: auto;
     border-right: none;
     border-bottom: 1px solid var(--color-border);
-    flex-shrink: 0;
-    /* Remove horizontal scroll styles */
-    overflow: visible;
-    -webkit-overflow-scrolling: auto;
-    overscroll-behavior: none;
-    position: relative;
-    /* Adjust padding for grid layout */
-    padding: 0;
     background: var(--color-surface);
+    padding: 0;
+    overflow: visible;
+    position: relative;
+    z-index: 100;
+    min-height: auto;
   }
   
-  .nav-list {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    grid-gap: 0.75rem !important;
-    padding: 0.75rem !important;
-    overflow: visible !important;
-    /* Remove scroll-related styles */
-    overflow-x: visible !important;
-    overflow-y: visible !important;
-    scrollbar-width: auto;
-    -ms-overflow-style: auto;
-    height: auto !important;
-    width: 100% !important;
-    /* Reset any flex properties */
-    flex-direction: unset !important;
-    min-width: unset !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    /* Remove list styles */
-    list-style: none !important;
-    /* Ensure grid items don't overlap */
-    grid-auto-rows: minmax(44px, auto);
-  }
-  
-  .nav-list li {
-    display: block !important;
-    width: 100% !important;
-    list-style: none !important;
-    /* Prevent layout overflow */
-    contain: layout style;
-    isolation: isolate;
-  }
-  
-  .nav-button {
-    /* Remove flex-shrink since we're using grid */
-    /* Adjust padding for grid layout */
-    padding: 0.5rem !important;
-    border-radius: var(--border-radius-md);
-    white-space: nowrap;
-    width: 100% !important;
-    justify-content: center;
-    font-size: 0.75rem;
-    margin: 0 !important;
-    /* Remove min-width constraint */
-    min-width: unset;
-    /* Ensure text doesn't wrap */
+  /* Mobile dropdown toggle */
+  .mobile-nav-toggle {
     display: flex;
     align-items: center;
-    gap: 0.3rem;
-    /* Ensure buttons are clickable */
-    position: relative;
-    z-index: 10;
-    pointer-events: auto;
-    touch-action: manipulation;
-    /* Override desktop button width calculation */
-    box-sizing: border-box !important;
-    /* Prevent touch event bleeding */
-    isolation: isolate;
-    /* Ensure no overflow */
+    justify-content: space-between;
+    width: 100%;
+    padding: 15px;
+    background: var(--color-surface);
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    min-height: 50px;
+  }
+  
+  .toggle-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .mobile-nav-toggle svg {
+    transition: transform 0.3s ease;
+  }
+  
+  .mobile-nav-toggle.open svg:last-child {
+    transform: rotate(180deg);
+  }
+  
+  /* Navigation dropdown */
+  .nav-list {
+    display: none;
+    flex-direction: column;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    background: var(--color-surface);
+    max-height: 0;
+    transition: max-height 0.3s ease;
     overflow: hidden;
   }
   
+  .nav-list.open {
+    display: flex;
+    max-height: 1000px;
+  }
+  
+  .nav-list li {
+    width: 100%;
+    margin: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  
+  .nav-list li:last-child {
+    border-bottom: none;
+  }
+  
+  .nav-button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 50px;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 0;
+    margin: 0;
+    background: var(--color-surface);
+    font-size: 1rem;
+    text-align: left;
+    color: var(--color-text-secondary);
+    transition: background-color 0.2s ease;
+    /* Touch improvements */
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  
+  .nav-button:active {
+    background-color: var(--color-accent-soft-hover);
+  }
+  
   .nav-button svg {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     flex-shrink: 0;
+    margin-right: 12px;
   }
   
   .nav-button span {
     overflow: hidden;
     text-overflow: ellipsis;
-    /* Ensure text stays within button bounds */
-    max-width: 100%;
-    display: block;
+    white-space: nowrap;
+  }
+  
+  /* Label display logic */
+  .mobile-label {
+    display: none;
+  }
+  
+  @media (max-width: 768px) {
+    .desktop-label {
+      display: none;
+    }
+    
+    .mobile-label {
+      display: block;
+    }
   }
   
   .nav-button.active {
     background: var(--color-accent);
     color: var(--color-text-on-accent);
-  }
-  
-  /* Remove the visual indicator since we don't need scroll anymore */
-  .sidebar::after {
-    display: none;
+    font-weight: 500;
   }
   
   .main-content {
     padding: 1rem;
     flex: 1;
-    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    overscroll-behavior: none;
+    overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-  }
-}
-
-/* Specific fix for Job Addresses button on mobile */
-@media (max-width: 768px) {
-  .nav-button[data-nav-id="addresses"] span {
-    /* Shorter text for Job Addresses on mobile */
-    font-size: 0.7rem;
-  }
-  
-  /* Ensure all nav buttons have consistent touch targets */
-  .nav-button {
-    min-height: 44px !important;
-    /* Prevent any button from expanding beyond its grid cell */
-    max-width: 100% !important;
-    /* Add a subtle border to visualize button boundaries during testing */
-    border: 1px solid transparent;
-    transition: border-color 0.2s ease;
-  }
-  
-  .nav-button:active {
-    /* Visual feedback on touch */
-    border-color: var(--color-accent);
-    transform: scale(0.98);
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
@@ -831,13 +808,32 @@ body {
   touch-action: manipulation;
 }
 
+/* Loading container styles */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: var(--color-background);
+  color: var(--color-text-secondary);
+  gap: 1rem;
+}
+
+.loading-container .spinner {
+  width: 48px;
+  height: 48px;
+}
+
 /* Ensure buttons are interactive on iOS */
 @supports (-webkit-touch-callout: none) {
   .btn {
     cursor: pointer;
   }
   
-  .header-right button {
+  .header-right button,
+  .mobile-nav-toggle,
+  .nav-button {
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
   }
 } 
