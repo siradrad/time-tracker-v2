@@ -220,11 +220,13 @@ function App() {
   const navigationItems = getNavigationItems()
 
   const renderCurrentView = () => {
+    console.log('renderCurrentView called with:', currentView, 'user role:', user.role)
     switch (currentView) {
       case 'timer':
         // Only show timer for non-admin users
         return user.role !== 'admin' ? <TimeTracker user={user} /> : <Dashboard user={user} />
       case 'addresses':
+        console.log('Rendering JobAddresses component')
         return <JobAddresses user={user} />
       case 'entries':
         return <TimeEntries user={user} />
@@ -233,6 +235,7 @@ function App() {
       case 'csi-tasks':
         return <CSITasks user={user} />
       default:
+        console.log('Hit default case in renderCurrentView')
         return user.role === 'admin' ? <Dashboard user={user} /> : <TimeTracker user={user} />
     }
   }
@@ -278,11 +281,12 @@ function App() {
               <ul className="nav-list">
                 {navigationItems.map((item) => {
                   const Icon = item.icon
+                  
                   return (
                     <li key={item.id}>
                       <button
                         onClick={() => {
-                          console.log('Nav button clicked:', item.id);
+                          console.log('Nav button clicked:', item.id, 'label:', item.label);
                           setCurrentView(item.id)
                         }}
                         className={`nav-button ${currentView === item.id ? 'active' : ''}`}
