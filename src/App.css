@@ -485,6 +485,8 @@ body {
     position: relative;
     /* Make navigation smaller on mobile */
     padding: 0.25rem 0;
+    /* Ensure content isn't cut off */
+    overflow-x: scroll;
   }
   
   .nav-list {
@@ -501,6 +503,8 @@ body {
     height: auto;
     /* Ensure full width for all buttons */
     width: max-content;
+    /* Add extra padding at the end to ensure last button is fully accessible */
+    padding-right: 2rem;
   }
   
   .nav-list::-webkit-scrollbar {

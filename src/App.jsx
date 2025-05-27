@@ -48,6 +48,13 @@ function App() {
         return
       }
       
+      // Check if we're in a horizontally scrollable area (navigation)
+      const isInHorizontalScroll = target.closest('.nav-list')
+      if (isInHorizontalScroll) {
+        // Allow horizontal scrolling in navigation
+        return
+      }
+      
       // Get all scrollable elements
       const scrollableElements = [
         ...e.composedPath().filter(el => {
