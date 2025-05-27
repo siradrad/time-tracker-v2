@@ -88,7 +88,7 @@ function App() {
       
       // Additional prevention on touch end only for significant pull
       if (window.scrollY === 0 && touchEndY > touchStartY && (touchEndY - touchStartY) > 10) {
-        e.preventDefault()
+        // e.preventDefault() // Commenting out as this may prevent button clicks on mobile
       }
     }
     
