@@ -34,6 +34,13 @@ function App() {
     const handleTouchMove = (e) => {
       touchEndY = e.touches[0].clientY
       
+      // Check if the touch target is a button or inside a button
+      const isButton = e.target.closest('button')
+      if (isButton) {
+        // Don't prevent default on buttons
+        return
+      }
+      
       // Get all scrollable elements
       const scrollableElements = [
         ...e.composedPath().filter(el => {
@@ -51,15 +58,22 @@ function App() {
       const atTop = scrollableElements.length === 0 || 
         scrollableElements.every(el => el.scrollTop === 0)
       
-      // Prevent pull-to-refresh if pulling down at the top
-      if (atTop && touchEndY > touchStartY) {
+      // Only prevent pull-to-refresh if pulling down at the top
+      // and the pull distance is significant (more than 10px)
+      if (atTop && touchEndY > touchStartY && (touchEndY - touchStartY) > 10) {
         e.preventDefault()
       }
     }
     
     const handleTouchEnd = (e) => {
-      // Additional prevention on touch end
-      if (window.scrollY === 0 && touchEndY > touchStartY) {
+      // Don't prevent touch end on buttons
+      const isButton = e.target.closest('button')
+      if (isButton) {
+        return
+      }
+      
+      // Additional prevention on touch end only for significant pull
+      if (window.scrollY === 0 && touchEndY > touchStartY && (touchEndY - touchStartY) > 10) {
         e.preventDefault()
       }
     }
@@ -110,10 +124,12 @@ function App() {
   }
 
   const handleSignOut = async () => {
+    console.log('Sign out button clicked!')
     try {
       await timeTrackerAPI.signOut()
       setUser(null)
       setCurrentView('timer')
+      console.log('Sign out successful')
     } catch (error) {
       console.error('Error signing out:', error)
     }
