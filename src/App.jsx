@@ -34,10 +34,17 @@ function App() {
     const handleTouchMove = (e) => {
       touchEndY = e.touches[0].clientY
       
-      // Check if the touch target is a button or inside a button
-      const isButton = e.target.closest('button')
-      if (isButton) {
-        // Don't prevent default on buttons
+      // Check if the touch target is a button, link, or interactive element
+      const target = e.target
+      const isInteractive = 
+        target.closest('button') || 
+        target.closest('a') || 
+        target.closest('input') || 
+        target.closest('select') ||
+        target.closest('textarea')
+        
+      if (isInteractive) {
+        // Don't prevent default on interactive elements
         return
       }
       
@@ -66,9 +73,16 @@ function App() {
     }
     
     const handleTouchEnd = (e) => {
-      // Don't prevent touch end on buttons
-      const isButton = e.target.closest('button')
-      if (isButton) {
+      // Check if the touch target is an interactive element
+      const target = e.target
+      const isInteractive = 
+        target.closest('button') || 
+        target.closest('a') || 
+        target.closest('input') || 
+        target.closest('select') ||
+        target.closest('textarea')
+        
+      if (isInteractive) {
         return
       }
       
@@ -251,14 +265,6 @@ function App() {
                 <button 
                   onClick={handleSignOut} 
                   className="btn btn-outline"
-                  onTouchStart={(e) => {
-                    console.log('Sign out button touched')
-                    e.stopPropagation()
-                  }}
-                  onTouchEnd={(e) => {
-                    console.log('Sign out button touch ended')
-                    e.stopPropagation()
-                  }}
                 >
                   <LogOut size={16} />
                   Sign Out
