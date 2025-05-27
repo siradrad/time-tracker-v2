@@ -1,18 +1,26 @@
 import { supabase, TABLES, INITIAL_USERS, INITIAL_JOB_ADDRESSES, INITIAL_CSI_TASKS } from './supabase-config.js'
 import bcrypt from 'bcryptjs'
 
-class SupabaseDBManager {
+class DataService {
   constructor() {
+    // User state
     this.currentUser = null
+    
+    // Cache configuration
     this._cache = {
+      // Data caches with timestamps
       allUsersData: null,
       allUsersDataTimestamp: null,
       csiTasks: null,
       csiTasksTimestamp: null,
       allJobAddresses: null,
       allJobAddressesTimestamp: null,
-      cacheTimeout: 300000 // 5 minutes cache timeout (increased from 60000)
+      
+      // Cache expiration time in milliseconds (5 minutes)
+      cacheTimeout: 300000
     }
+    
+    // Initialize state
     this._loadCurrentUser()
     this._initializeData()
   }
@@ -665,9 +673,15 @@ class SupabaseDBManager {
     }
   }
 
-  // Cache management methods
+  /**
+   * Invalidates all caches when data is modified
+   * Called after any create, update, or delete operations
+   * to ensure components fetch fresh data
+   */
   _invalidateCache() {
     console.log("🗑️ Cache invalidated due to data changes")
+    
+    // Reset all cache data and timestamps
     this._cache.allUsersData = null
     this._cache.allUsersDataTimestamp = null
     this._cache.csiTasks = null
@@ -935,7 +949,7 @@ class SupabaseDBManager {
   }
 }
 
-const dbManager = new SupabaseDBManager()
+const dbManager = new DataService()
 
 export const timeTrackerAPI = {
   signUp: (username, password, name) => dbManager.signUp(username, password, name),
