@@ -1,0 +1,277 @@
+/* Dark Professional Theme for Time Tracker V2 */
+
+:root {
+  /* Theme Colors */
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --dark-bg: #0f172a;
+  --dark-card: #1e293b;
+  --dark-card-hover: #334155;
+  --dark-text: #f1f5f9;
+  --dark-text-secondary: #94a3b8;
+  --dark-border: #334155;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  
+  /* Shadows */
+  --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 4px 14px rgba(0, 0, 0, 0.2);
+  --shadow-heavy: 0 8px 32px rgba(0, 0, 0, 0.3);
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-medium: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s ease;
+  
+  /* Border Radius */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+}
+
+/* Dark Theme Base */
+.dark-theme {
+  background: var(--dark-bg);
+  color: var(--dark-text);
+  min-height: 100vh;
+}
+
+.dark-theme .app {
+  background: var(--dark-bg);
+}
+
+/* Header Dark Theme */
+.dark-theme .app-header {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  border-bottom: 1px solid var(--dark-border);
+}
+
+/* Cards Dark Theme */
+.dark-theme .card {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  box-shadow: var(--shadow-medium);
+}
+
+.dark-theme .card:hover {
+  background: var(--dark-card-hover);
+  box-shadow: var(--shadow-heavy);
+}
+
+/* Buttons Dark Theme */
+.dark-theme .btn-primary {
+  background: var(--primary-gradient);
+  box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
+}
+
+.dark-theme .btn-secondary {
+  background: var(--dark-card);
+  color: var(--dark-text);
+  border: 1px solid var(--dark-border);
+}
+
+.dark-theme .btn-secondary:hover {
+  background: var(--dark-card-hover);
+}
+
+/* Forms Dark Theme */
+.dark-theme .form-input,
+.dark-theme .form-select,
+.dark-theme .form-textarea {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  color: var(--dark-text);
+}
+
+.dark-theme .form-input:focus,
+.dark-theme .form-select:focus,
+.dark-theme .form-textarea:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+/* Navigation Dark Theme */
+.dark-theme .sidebar {
+  background: var(--dark-card);
+  border-right: 1px solid var(--dark-border);
+}
+
+.dark-theme .nav-button {
+  color: var(--dark-text-secondary);
+}
+
+.dark-theme .nav-button:hover {
+  background: var(--dark-card-hover);
+  color: var(--dark-text);
+}
+
+.dark-theme .nav-button.active {
+  background: rgba(102, 126, 234, 0.2);
+  color: #667eea;
+  border-right: 3px solid #667eea;
+}
+
+/* Timer Display Dark Theme */
+.dark-theme .timer-display {
+  background: linear-gradient(135deg, var(--dark-card) 0%, var(--dark-card-hover) 100%);
+  border: 1px solid var(--dark-border);
+}
+
+.dark-theme .time-text {
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Status Indicators Dark Theme */
+.dark-theme .status-running {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.dark-theme .status-paused {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.dark-theme .status-stopped {
+  background: rgba(148, 163, 184, 0.2);
+  color: var(--dark-text-secondary);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+/* Job Addresses Dark Theme */
+.dark-theme .address-item {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+}
+
+.dark-theme .address-item:hover {
+  background: var(--dark-card-hover);
+  border-color: #475569;
+}
+
+/* Time Entries Dark Theme */
+.dark-theme .entry-item {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+}
+
+.dark-theme .entry-item:hover {
+  background: var(--dark-card-hover);
+  box-shadow: var(--shadow-medium);
+}
+
+/* Dashboard Dark Theme */
+.dark-theme .stat-card {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+}
+
+.dark-theme .stat-card:hover {
+  background: var(--dark-card-hover);
+  box-shadow: var(--shadow-heavy);
+}
+
+.dark-theme .stat-icon {
+  background: var(--primary-gradient);
+}
+
+.dark-theme .stat-value {
+  color: var(--dark-text);
+}
+
+.dark-theme .stat-label {
+  color: var(--dark-text-secondary);
+}
+
+/* Login Dark Theme */
+.dark-theme .login-container {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+.dark-theme .login-content {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+}
+
+.dark-theme .test-account-card {
+  background: var(--dark-card-hover);
+  border: 1px solid var(--dark-border);
+}
+
+.dark-theme .test-account-card:hover {
+  background: #475569;
+  border-color: #667eea;
+}
+
+/* Scrollbars Dark Theme */
+.dark-theme ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark-theme ::-webkit-scrollbar-track {
+  background: var(--dark-card);
+}
+
+.dark-theme ::-webkit-scrollbar-thumb {
+  background: var(--dark-border);
+  border-radius: 4px;
+}
+
+.dark-theme ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Loading Spinner Dark Theme */
+.dark-theme .spinner {
+  border: 4px solid var(--dark-border);
+  border-top: 4px solid #667eea;
+}
+
+/* Enhanced Animations for Dark Theme */
+.dark-theme .card,
+.dark-theme .btn,
+.dark-theme .form-input,
+.dark-theme .nav-button {
+  transition: var(--transition-medium);
+}
+
+/* Glow Effects */
+.dark-theme .btn-primary:hover {
+  box-shadow: 
+    0 8px 25px rgba(102, 126, 234, 0.4),
+    0 0 20px rgba(102, 126, 234, 0.2);
+}
+
+.dark-theme .timer-display {
+  box-shadow: 
+    var(--shadow-medium),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Backdrop Blur Effects */
+.dark-theme .card {
+  backdrop-filter: blur(8px);
+  background: rgba(30, 41, 59, 0.8);
+}
+
+/* Focus States */
+.dark-theme *:focus-visible {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Custom Properties for Easy Theme Switching */
+.dark-theme {
+  --text-color: #{var(--dark-text)};
+  --text-secondary: #{var(--dark-text-secondary)};
+  --bg-color: #{var(--dark-bg)};
+  --card-color: #{var(--dark-card)};
+  --border-color: #{var(--dark-border)};
+} 

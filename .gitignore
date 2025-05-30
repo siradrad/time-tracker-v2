@@ -40,3 +40,10 @@ tmp/
 temp/ 
 node_modules
 .vercel
+
+# Documentation build outputs (if any)
+docs/build/
+docs/_site/
+
+# Deprecated directories (transitional)
+# aesthetic-changes/ - Transitioning to design-system/

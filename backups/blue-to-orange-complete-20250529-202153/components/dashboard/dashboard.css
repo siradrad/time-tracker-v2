@@ -1,0 +1,604 @@
+/* Dashboard Components Styling */
+
+/* Common dashboard styles */
+.dashboard-container {
+  width: 100%;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.dashboard-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dashboard-section {
+  margin-bottom: 20px;
+}
+
+/* Dashboard Card Component */
+.dashboard-card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.dashboard-card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.dashboard-card-icon {
+  margin-right: 10px;
+  color: #555;
+}
+
+.dashboard-card-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.dashboard-card-header-space {
+  flex-grow: 1;
+}
+
+.dashboard-card-action {
+  background-color: #f0f0f0;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.dashboard-card-action:hover {
+  background-color: #e0e0e0;
+}
+
+.dashboard-card-content {
+  width: 100%;
+}
+
+/* Stat Item */
+.stat-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-radius: 6px;
+  background-color: #f8f9fa;
+  margin-bottom: 10px;
+}
+
+.stat-item-icon {
+  margin-right: 12px;
+  color: #F97316;
+}
+
+.stat-item-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-item-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.stat-item-label {
+  font-size: 14px;
+  color: #666;
+}
+
+.stats-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 15px;
+}
+
+/* Division/Task breakdown */
+.division-list {
+  margin-top: 10px;
+}
+
+.division-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.division-name {
+  width: 30%;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.division-bar-container {
+  flex-grow: 1;
+  height: 8px;
+  background-color: #eee;
+  border-radius: 4px;
+  margin: 0 10px;
+}
+
+.division-bar {
+  height: 100%;
+  background-color: #F97316;
+  border-radius: 4px;
+}
+
+.division-time {
+  width: 50px;
+  text-align: right;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Time Entries List */
+.time-entry-item {
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 15px;
+  transition: all 0.2s;
+}
+
+.time-entry-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.entry-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.entry-date, .entry-duration {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #666;
+}
+
+.entry-date svg, .entry-duration svg {
+  margin-right: 5px;
+}
+
+.entry-location {
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.entry-location svg {
+  margin-right: 5px;
+  color: #666;
+}
+
+.entry-task {
+  margin-bottom: 10px;
+}
+
+.task-label {
+  background-color: #e9ecef;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.entry-notes {
+  font-size: 14px;
+  color: #666;
+  margin-top: 8px;
+}
+
+.entry-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.action-button {
+  background: none;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.edit-button:hover {
+  background-color: #e9ecef;
+}
+
+.delete-button:hover {
+  background-color: #ffe5e5;
+}
+
+/* User cards */
+.users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.user-card {
+  transition: all 0.2s;
+}
+
+.user-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.user-card-header {
+  display: flex;
+  margin-bottom: 15px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  background-color: #e9ecef;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+}
+
+.user-info {
+  flex-grow: 1;
+}
+
+.user-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.user-email {
+  font-size: 14px;
+  color: #666;
+  margin: 3px 0;
+}
+
+.user-status {
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  display: inline-block;
+}
+
+.status-active {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-recent {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-inactive {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.user-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.stat-box {
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  padding: 10px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 5px 0;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #666;
+}
+
+.admin-badge {
+  background-color: #FFF7ED;
+  color: #9A3412;
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 10px;
+}
+
+/* Add user and add entry buttons */
+.add-user-button,
+.add-entry-button {
+  display: flex;
+  align-items: center;
+  background-color: #F97316;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.add-user-button svg,
+.add-entry-button svg {
+  margin-right: 6px;
+}
+
+.add-user-button:hover,
+.add-entry-button:hover {
+  background-color: #EA580C;
+}
+
+/* Hierarchical time entries view */
+.hierarchical-entries {
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.year-group, .month-group, .biweek-group {
+  margin-bottom: 10px;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.group-header:hover {
+  background-color: #f0f0f0;
+}
+
+.year-header {
+  background-color: #e9ecef;
+  font-weight: 600;
+  border-radius: 4px;
+}
+
+.month-header {
+  background-color: #f1f3f5;
+  padding-left: 20px;
+  margin-left: 10px;
+  border-radius: 4px;
+}
+
+.biweek-header {
+  background-color: #f8f9fa;
+  padding-left: 30px;
+  margin-left: 20px;
+  border-radius: 4px;
+}
+
+.header-icon {
+  margin-right: 8px;
+}
+
+.header-title {
+  flex-grow: 1;
+}
+
+.header-stats {
+  font-size: 14px;
+  color: #666;
+  display: flex;
+  gap: 10px;
+}
+
+.month-groups, .biweek-groups, .entries-list {
+  margin-left: 15px;
+}
+
+.entries-list {
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.entry-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  background-color: white;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  margin-left: 30px;
+}
+
+.entry-item:hover {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.entry-details {
+  flex-grow: 1;
+}
+
+.entry-user {
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.entry-date-time {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.entry-date-time svg {
+  margin: 0 5px;
+}
+
+.entry-job {
+  font-size: 14px;
+  margin-bottom: 3px;
+}
+
+.entry-task {
+  font-size: 14px;
+  color: #444;
+}
+
+.entry-notes {
+  font-size: 13px;
+  color: #666;
+  margin-top: 5px;
+}
+
+/* Reporting section */
+.reporting-container {
+  /* This class is no longer the main modal container. 
+     It might be used for an inner content wrapper if needed, 
+     or its styles can be merged/removed.
+     For now, keeping it empty to avoid conflicts with the new modal structure.
+  */
+}
+
+.reporting-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.reporting-title {
+  font-size: 18px;
+  font-weight: 600;
+  display: flex; /* Added for icon alignment */
+  align-items: center; /* Added for icon alignment */
+  margin: 0;
+}
+
+.reporting-close {
+  /* This class is replaced by btn btn-outline btn-sm. 
+     Keeping it commented out or removing it is an option. */
+}
+
+.reporting-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-label {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.date-filter {
+  display: flex;
+  gap: 10px;
+}
+
+.date-input {
+  flex: 1;
+}
+
+.filter-input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  width: 100%; /* Ensure inputs take full width of their container */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  border-radius: 4px;
+}
+
+.multiselect-container {
+  margin-top: 10px;
+}
+
+.option-list {
+  max-height: 150px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+}
+
+.option-item:hover {
+  background-color: #f0f0f0;
+}
+
+.option-checkbox {
+  margin-right: 8px;
+}
+
+.reporting-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.run-report-button {
+  /* This class is replaced by btn btn-primary.
+     Keeping it commented out or removing it is an option.
+     Example: .btn.btn-primary can be used instead.
+  */
+}
+
+.report-style-toggle {
+  display: flex;
+  gap: 10px;
+}
+
+.style-option {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.style-option.active {
+  background-color: #e9ecef;
+  font-weight: 600;
+} 

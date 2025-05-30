@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample Light Mode Report Layout</title>
+    <style>
+        /* CSS Variables (inspired by App.css and Admin Dashboard) */
+        :root {
+            --color-background: #ffffff;
+            --color-background-alt: #f9fafb; /* Light gray page background */
+            --color-surface: #ffffff;       /* White card background */
+            --color-border: #e5e7eb;        /* Light gray border */
+            --color-border-hover: #d1d5db;
+            --color-text-primary: #111827;    /* Dark gray/black text */
+            --color-text-secondary: #374151;  /* Medium gray text */
+            --color-text-tertiary: #6b7280;   /* Lighter gray text */
+            --color-accent: #3b82f6;         /* Blue accent */
+            --color-accent-soft: #eff6ff;    /* Light blue soft accent */
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --border-radius-sm: 4px;
+            --border-radius-md: 6px;
+            --border-radius-lg: 8px;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--color-background-alt);
+            color: var(--color-text-primary);
+            line-height: 1.6;
+        }
+
+        .report-page-sample {
+            padding: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .report-header-sample {
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .report-header-sample h1 {
+            font-size: 28px;
+            font-weight: 600; /* Bolder like dashboard */
+            margin: 0 0 5px 0;
+            color: var(--color-text-primary);
+        }
+
+        .report-header-sample p {
+            font-size: 16px;
+            color: var(--color-text-secondary);
+            margin: 0;
+        }
+
+        .date-section-sample {
+            margin-bottom: 30px;
+        }
+
+        .date-header-sample {
+            background-color: var(--color-surface);
+            color: var(--color-text-primary);
+            padding: 16px 20px;
+            border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--color-border);
+            border-bottom: 1px solid var(--color-border); /* Solid line like dashboard group headers */
+        }
+
+        .date-header-sample h2 {
+            font-size: 20px;
+            font-weight: 600; /* Bolder */
+            margin: 0;
+        }
+
+        .date-total-sample {
+            font-size: 16px; /* Slightly smaller to match dashboard badges */
+            font-weight: 500;
+            background-color: var(--color-accent-soft);
+            color: var(--color-accent);
+            padding: 4px 10px;
+            border-radius: var(--border-radius-md);
+        }
+
+        .workers-grid-sample {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Adjusted minmax for 3-up */
+            gap: 20px;
+             /* If date header is not part of a larger card containing the grid */
+            padding-top: 0; /* Remove if border is on date-header only */
+        }
+        .date-section-sample .workers-grid-sample {
+             /* If the grid is visually grouped under the date header */
+            padding: 20px;
+            background-color: var(--color-background-alt); /* Match page bg or surface */
+            border: 1px solid var(--color-border);
+            border-top: none; /* Date header has bottom border */
+            border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+        }
+
+        .worker-card-sample {
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .worker-card-sample:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .worker-header-sample {
+            background-color: var(--color-background-alt); /* Slightly off-white for header */
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .worker-header-sample h3 {
+            font-size: 16px;
+            font-weight: 600; /* Bolder */
+            margin: 0;
+            color: var(--color-text-primary);
+        }
+
+        .worker-total-sample { /* For total hours per worker */
+            font-size: 14px;
+            font-weight: 500;
+            background-color: var(--color-accent-soft);
+            color: var(--color-accent);
+            padding: 4px 8px;
+            border-radius: var(--border-radius-sm);
+        }
+
+        .jobs-list-sample {
+            padding: 16px;
+        }
+
+        .job-section-sample {
+            background-color: var(--color-surface); /* Keep consistent with card or slightly off */
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .job-section-sample:last-child { margin-bottom: 0; }
+
+        .job-header-sample {
+            padding: 10px 12px;
+            background-color: var(--color-background-alt); /* Consistent header bg */
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .job-header-sample h4 {
+            font-size: 14px;
+            font-weight: 500;
+            margin: 0;
+            color: var(--color-text-primary);
+        }
+
+        .job-meta-sample {
+            display: flex;
+            gap: 8px; /* Spacing for badges */
+        }
+        .job-meta-sample span { /* General style for job meta badges */
+            font-size: 12px;
+            padding: 3px 6px;
+            border-radius: var(--border-radius-sm);
+            font-weight: 500;
+        }
+        .job-meta-sample .job-total-hours-sample {
+            background-color: var(--color-accent-soft);
+            color: var(--color-accent);
+        }
+        .job-meta-sample .task-count-badge-sample { /* Specific for task count */
+            background-color: #e5e7eb; /* Neutral light gray for count */
+            color: var(--color-text-secondary);
+        }
+
+        .tasks-list-sample {
+            padding: 12px;
+        }
+
+        .task-item-sample {
+            margin-bottom: 10px;
+        }
+        .task-item-sample:last-child { margin-bottom: 0; }
+
+        .task-info-sample {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .task-name-sample {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+
+        .task-hours-sample {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--color-text-primary);
+        }
+
+        .task-progress-bar-sample {
+            background-color: #e5e7eb; /* Light gray track */
+            border-radius: var(--border-radius-sm);
+            height: 6px; /* Slimmer progress bar */
+            overflow: hidden;
+        }
+
+        .task-progress-fill-sample {
+            background-color: var(--color-accent); /* Blue accent fill */
+            height: 100%;
+            border-radius: var(--border-radius-sm);
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="report-page-sample">
+        <div class="report-header-sample">
+            <h1>Time Report</h1>
+            <p>Grouped by Date &rarr; Worker &rarr; Job &rarr; Task (Light Mode)</p>
+        </div>
+
+        <div class="date-section-sample">
+            <div class="date-header-sample">
+                <h2>Tuesday, May 20, 2025</h2>
+                <span class="date-total-sample">15.15h</span>
+            </div>
+            <div class="workers-grid-sample">
+                <!-- Worker Card 1 -->
+                <div class="worker-card-sample">
+                    <div class="worker-header-sample">
+                        <h3>Jeremy</h3>
+                        <span class="worker-total-sample">9.03h</span>
+                    </div>
+                    <div class="jobs-list-sample">
+                        <div class="job-section-sample">
+                            <div class="job-header-sample">
+                                <h4>408 Kirtner LLC</h4>
+                                <div class="job-meta-sample">
+                                    <span class="job-total-hours-sample">9.03h</span>
+                                    <span class="task-count-badge-sample">1 Task</span>
+                                </div>
+                            </div>
+                            <div class="tasks-list-sample">
+                                <div class="task-item-sample">
+                                    <div class="task-info-sample">
+                                        <span class="task-name-sample">Division 02 - Site</span>
+                                        <span class="task-hours-sample">9.03h</span>
+                                    </div>
+                                    <div class="task-progress-bar-sample">
+                                        <div class="task-progress-fill-sample" style="width: 100%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Worker Card 2 -->
+                <div class="worker-card-sample">
+                    <div class="worker-header-sample">
+                        <h3>Unknown</h3>
+                        <span class="worker-total-sample">6.12h</span>
+                    </div>
+                    <div class="jobs-list-sample">
+                        <div class="job-section-sample">
+                            <div class="job-header-sample">
+                                <h4>4301 N Delaware OOB</h4>
+                                <div class="job-meta-sample">
+                                     <span class="job-total-hours-sample">6.12h</span>
+                                     <span class="task-count-badge-sample">1 Task</span>
+                                </div>
+                            </div>
+                            <div class="tasks-list-sample">
+                                <div class="task-item-sample">
+                                    <div class="task-info-sample">
+                                        <span class="task-name-sample">Plumbing</span>
+                                        <span class="task-hours-sample">6.12h</span>
+                                    </div>
+                                    <div class="task-progress-bar-sample">
+                                        <div class="task-progress-fill-sample" style="width: 100%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Worker Card 3 -->
+                <div class="worker-card-sample">
+                    <div class="worker-header-sample">
+                        <h3>Stacy</h3>
+                        <span class="worker-total-sample">8.50h</span>
+                    </div>
+                    <div class="jobs-list-sample">
+                        <div class="job-section-sample">
+                            <div class="job-header-sample">
+                                <h4>1620 Spruce St</h4>
+                                <div class="job-meta-sample">
+                                    <span class="job-total-hours-sample">5.00h</span>
+                                    <span class="task-count-badge-sample">2 Tasks</span>
+                                </div>
+                            </div>
+                            <div class="tasks-list-sample">
+                                <div class="task-item-sample">
+                                    <div class="task-info-sample">
+                                        <span class="task-name-sample">General Construction</span>
+                                        <span class="task-hours-sample">3.00h</span>
+                                    </div>
+                                    <div class="task-progress-bar-sample">
+                                        <div class="task-progress-fill-sample" style="width: 60%;"></div>
+                                    </div>
+                                </div>
+                                <div class="task-item-sample">
+                                    <div class="task-info-sample">
+                                        <span class="task-name-sample">Finishes</span>
+                                        <span class="task-hours-sample">2.00h</span>
+                                    </div>
+                                    <div class="task-progress-bar-sample">
+                                        <div class="task-progress-fill-sample" style="width: 40%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="job-section-sample">
+                            <div class="job-header-sample">
+                                <h4>ECPM Admin</h4>
+                                <div class="job-meta-sample">
+                                    <span class="job-total-hours-sample">3.50h</span>
+                                    <span class="task-count-badge-sample">1 Task</span>
+                                </div>
+                            </div>
+                            <div class="tasks-list-sample">
+                                <div class="task-item-sample">
+                                    <div class="task-info-sample">
+                                        <span class="task-name-sample">Admin / Office</span>
+                                        <span class="task-hours-sample">3.50h</span>
+                                    </div>
+                                    <div class="task-progress-bar-sample">
+                                        <div class="task-progress-fill-sample" style="width: 100%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
